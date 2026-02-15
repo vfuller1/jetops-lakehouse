@@ -1,6 +1,6 @@
 # Create the Azure Container Registry
 resource "azurerm_container_registry" "acr" {
-  name                = "aviatoracr"
+  name                = "aviatoracrjetops"
   resource_group_name = "rg-aviator-core-prod"
   location            = "East US 2"
   sku                 = "Basic"
