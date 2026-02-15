@@ -16,6 +16,26 @@ resource "azurerm_role_assignment" "aks_to_acr" {
   skip_service_principal_aad_check = true
 
   lifecycle {
-    ignore_changes = [principal_id, role_definition_name, scope]
+    ignore_changes = [
+      principal_id,
+      role_definition_name,
+      scope,
+      skip_service_principal_aad_check,
+      description,
+      condition,
+      condition_version,
+      delegated_managed_identity_resource_id,
+      resource_group,
+      role_definition_id,
+      principal_type,
+      principal_name,
+      type,
+      updated_by,
+      updated_on,
+      created_by,
+      created_on,
+      name,
+      id
+    ]
   }
 }
