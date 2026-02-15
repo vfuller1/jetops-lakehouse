@@ -28,4 +28,10 @@ def index():
         return render_template('index.html', rows=rows)
     except Exception as e:
         print(f"!!! NEW STRATEGY FAILURE: {str(e)}")
+
         return f"Database Error: {str(e)}", 500
+
+
+# Start the Flask app if this script is run directly
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
