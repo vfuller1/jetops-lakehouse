@@ -10,10 +10,10 @@ terraform {
 
   # This block keeps your local environment in sync with Azure and GitHub
   backend "azurerm" {
-    resource_group_name  = "rg-aviator-terraform-state"
-    storage_account_name = "staviatorstate1770773419"
-    container_name       = "tfstate"
-    key                  = "aviator-core.terraform.tfstate"
+    resource_group_name   = "rg-jetops-terraform-state"
+    storage_account_name  = "stjetopsstate001"
+    container_name        = "tfstate"
+    key                   = "terraform.tfstate"
   }
 }
 
