@@ -15,6 +15,7 @@ spec:
         app: aviator
         # REMOVED: azure.workload.identity/use: "true"
     spec:
+      serviceAccountName: aviator-service-account
       containers:
       - name: aviator-container
         image: aviatoracrjetops01.azurecr.io/aviator-maintenance-app:latest # Use the latest pushed image
@@ -34,3 +35,10 @@ spec:
     - protocol: TCP
       port: 80
       targetPort: 5000
+
+    ---
+    apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      name: aviator-service-account
+      namespace: default
