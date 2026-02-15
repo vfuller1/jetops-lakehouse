@@ -1,6 +1,6 @@
 # Azure SQL Logical Server
 resource "azurerm_mssql_server" "aviator_sql" {
-  name                         = "sql-server-aviator-maintenance"
+  name                         = "sql-server-aviator-jetops01"
   resource_group_name          = azurerm_resource_group.aviator.name
   location                     = azurerm_resource_group.aviator.location
   version                      = "12.0"
