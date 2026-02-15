@@ -21,9 +21,6 @@ spec:
         imagePullPolicy: Always
         ports:
         - containerPort: 5000
-        env:
-        - name: AZURE_CLIENT_ID
-          value: "a58e6bd1-f10e-4cd6-bd86-9aa8f641e5a3" # Your Managed Identity Client ID
 ---
 apiVersion: v1
 kind: Service
