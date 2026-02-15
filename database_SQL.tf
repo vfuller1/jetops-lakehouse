@@ -10,8 +10,8 @@ resource "azurerm_mssql_server" "aviator_sql" {
 
   # ADDED: This enables Microsoft Entra authentication for the server
   azuread_administrator {
-    login_username = "nyetawilliams_icloud.com#EXT#@nyetawilliamsicloud.onmicrosoft.com"
-    object_id      = "a58e6bd1-f10e-4cd6-bd86-9aa8f641e5a3" # The ID from your TF plan
+    login_username = "vfuller100_outlook.com#EXT#@vfuller100outlook.onmicrosoft.com"
+    object_id      = "5ef08eb8-8ed2-49b3-8eb2-46fba1215518"
     tenant_id      = var.tenant_id
   }
 }
