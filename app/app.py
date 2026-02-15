@@ -22,7 +22,7 @@ def index():
         conn = get_db_connection()
         cursor = conn.cursor()
         # Fetching your 280 verified records
-        cursor.execute("SELECT LogID, TailNumber, Status, Component, PartHours, Details FROM dbo.MaintenanceLogs")
+        cursor.execute("SELECT LogID, TailNumber, Status, Component, PartHours, Details, InspectionDate FROM dbo.MaintenanceLogs")
         rows = cursor.fetchall()
         conn.close()
         return render_template('index.html', rows=rows)

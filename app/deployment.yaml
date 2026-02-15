@@ -17,7 +17,8 @@ spec:
     spec:
       containers:
       - name: aviator-container
-        image: aviatoracr.azurecr.io/aviator-app:v6 # Pointing to your new 'v6' strategy
+        image: aviatoracrjetops01.azurecr.io/aviator-maintenance-app:latest # Use the latest pushed image
+        imagePullPolicy: Always
         ports:
         - containerPort: 5000
         env:
