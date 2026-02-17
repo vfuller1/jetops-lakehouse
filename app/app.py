@@ -4,12 +4,12 @@ from flask import Flask, render_template
 app = Flask(__name__)
 
 def get_db_connection():
-    # Use 'ActiveDirectoryMsi' for AKS Managed Identity
+    # Use SQL authentication for urgent connectivity
     conn_str = (
         "Driver={ODBC Driver 18 for SQL Server};"
         "Server=sql-server-aviator-maintenance.database.windows.net,1433;"
         "Database=db-airplane-maintenance;"
-        "Authentication=ActiveDirectoryMsi;"
+        "UID=aviatoradmin;PWD=Jesusch!1;"
         "Encrypt=yes;"
         "TrustServerCertificate=yes;"
     )
