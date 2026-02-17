@@ -7,7 +7,7 @@ def get_db_connection():
     # Use SQL authentication for urgent connectivity
     conn_str = (
         "Driver={ODBC Driver 18 for SQL Server};"
-        "Server=sql-server-aviator-maintenance.database.windows.net,1433;"
+        "Server=sql-server-aviator-jetops01.database.windows.net,1433;"
         "Database=db-airplane-maintenance;"
         "UID=aviatoradmin;PWD=Jesusch!1;"
         "Encrypt=yes;"
