@@ -12,7 +12,7 @@ RUN curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor
     && ACCEPT_EULA=Y apt-get install -y msodbcsql18
 
 WORKDIR /app
-COPY app/ .
+COPY . .
 RUN pip install --no-cache-dir -r requirements.txt
 
 EXPOSE 5000

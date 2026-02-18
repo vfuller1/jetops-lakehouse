@@ -24,7 +24,7 @@ def index():
         cursor.execute("SELECT LogID, TailNumber, Status, Component, PartHours, Details, InspectionDate FROM dbo.MaintenanceLogs")
         rows = cursor.fetchall()
         conn.close()
-        return render_template('index.html', rows=rows)
+        return render_template('index.htm', rows=rows)
     except Exception as e:
         import traceback
         print(f"!!! NEW STRATEGY FAILURE: {str(e)}")
