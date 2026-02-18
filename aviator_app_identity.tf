@@ -14,7 +14,7 @@ resource "azurerm_role_assignment" "acr_pull" {
 
 # Assign Reader role for Azure SQL (update scope as needed)
 resource "azurerm_role_assignment" "sql_reader" {
-  scope                = azurerm_mssql_server.sql_server.id
+  scope                = azurerm_mssql_server.aviator_sql.id
   role_definition_name = "Reader"
   principal_id         = azurerm_user_assigned_identity.aviator_app_identity.principal_id
 }
