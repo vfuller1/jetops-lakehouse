@@ -1,0 +1,32 @@
+name: 'Herbalife Lakehouse Deploy'
+
+on:
+  push:
+    branches: [ "herbalife-dev" ]
+  workflow_dispatch:
+
+jobs:
+  terraform:
+    name: 'Terraform Herbalife Dev'
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+
+    - name: Terraform Init
+      run: terraform init
+
+    - name: Terraform Plan (Herbalife Dev)
+      run: terraform plan -var-file="herbalife-dev.tfvars"
+
+    - name: Terraform Apply (Herbalife Dev)
+      run: terraform apply -auto-approve -var-file="herbalife-dev.tfvars"
