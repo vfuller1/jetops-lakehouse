@@ -39,5 +39,5 @@ resource "azurerm_public_ip" "rycrawl_test_public_ip" {
   location            = azurerm_resource_group.aviator.location
   resource_group_name = azurerm_resource_group.aviator.name
   allocation_method   = "Dynamic"
-  sku                 = "Basic"
+  sku                 = "Standard"
 }
