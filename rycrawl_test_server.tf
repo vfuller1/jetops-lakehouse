@@ -3,7 +3,7 @@ resource "azurerm_windows_virtual_machine" "rycrawl_test" {
   name                = "vm-rycrawl-test"
   resource_group_name = azurerm_resource_group.aviator.name
   location            = azurerm_resource_group.aviator.location
-  size                = "Standard_B2ms"
+  size                = "Standard_D2s_v3"
   admin_username      = var.rycrawl_admin_username
   admin_password      = var.rycrawl_admin_password
   network_interface_ids = [azurerm_network_interface.rycrawl_test_nic.id]
