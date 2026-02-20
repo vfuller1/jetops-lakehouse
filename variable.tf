@@ -1,3 +1,17 @@
+# Admin username for Rycrawl test server
+variable "rycrawl_admin_username" {
+  description = "Admin username for the Rycrawl Windows Server VM"
+  type        = string
+  default     = "administrator"
+}
+
+# Admin password for Rycrawl test server
+variable "rycrawl_admin_password" {
+  description = "Admin password for the Rycrawl Windows Server VM"
+  type        = string
+  sensitive   = true
+  default     = "Jesusch!1"
+}
 variable "resource_group_name" {
   description = "The name of the resource group for Aviator Core"
   type        = string
