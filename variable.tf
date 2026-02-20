@@ -2,7 +2,7 @@
 variable "rycrawl_admin_username" {
   description = "Admin username for the Rycrawl Windows Server VM"
   type        = string
-  default     = "administrator"
+  default     = "rycrawladmin"
 }
 
 # Admin password for Rycrawl test server
