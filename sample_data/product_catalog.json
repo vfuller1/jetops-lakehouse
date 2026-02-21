@@ -1,0 +1,5 @@
+[
+  {"product_id": 3001, "name": "Herbalife Formula 1", "category": "Shake", "sku": "F1-001", "price": 39.99},
+  {"product_id": 3002, "name": "Herbalife Tea Concentrate", "category": "Tea", "sku": "TC-002", "price": 24.99},
+  {"product_id": 3003, "name": "Herbalife Protein Bar", "category": "Snack", "sku": "PB-003", "price": 19.99}
+]

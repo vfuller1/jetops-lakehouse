@@ -4,5 +4,6 @@ resource "azurerm_storage_account" "HL_herbalife_dev" {
   location                 = azurerm_resource_group.HL_herbalife_dev_core.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
+  is_hns_enabled           = true
   tags                     = local.herbalife_common_tags
 }

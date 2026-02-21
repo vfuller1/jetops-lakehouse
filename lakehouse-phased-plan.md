@@ -64,4 +64,19 @@ This document outlines a clear, actionable phased plan for building your Lakehou
 
 ---
 
+## Example Terraform Outputs (from deployment)
+
+```
+aks_cluster_name = "aks-aviator-core"
+aks_control_plane_fqdn = "aviatorcore-p3wl4qvp.hcp.eastus2.azmk8s.io"
+aviator_app_identity_client_id = "bb72c2e2-d4a8-4d63-910a-4ee7272c4d00"
+aviator_app_identity_resource_id = "/subscriptions/41497b8e-aaf1-4a1d-9f43-7ebf6213b955/resourceGroups/rg-aviator-core-prod/providers/Microsoft.ManagedIdentity/userAssignedIdentities/aviator-app-identity"
+hub_vnet_id = "/subscriptions/41497b8e-aaf1-4a1d-9f43-7ebf6213b955/resourceGroups/rg-aviator-core-prod/providers/Microsoft.Network/virtualNetworks/vnet-hub-aviator"
+resource_group_name = "rg-aviator-core-prod"
+```
+
+These outputs are generated after a successful Terraform deployment and can be referenced for connecting services, automation, or documentation.
+
+---
+
 > This phased plan is designed for learning, experimentation, and safe iteration in a development or training environment. Adjust steps as needed for your specific use case or organizational requirements.
