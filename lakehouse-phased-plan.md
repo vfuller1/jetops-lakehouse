@@ -73,6 +73,41 @@ aviator_app_identity_client_id = "bb72c2e2-d4a8-4d63-910a-4ee7272c4d00"
 aviator_app_identity_resource_id = "/subscriptions/41497b8e-aaf1-4a1d-9f43-7ebf6213b955/resourceGroups/rg-aviator-core-prod/providers/Microsoft.ManagedIdentity/userAssignedIdentities/aviator-app-identity"
 hub_vnet_id = "/subscriptions/41497b8e-aaf1-4a1d-9f43-7ebf6213b955/resourceGroups/rg-aviator-core-prod/providers/Microsoft.Network/virtualNetworks/vnet-hub-aviator"
 resource_group_name = "rg-aviator-core-prod"
+herbalife_databricks_workspace_id = "/subscriptions/41497b8e-aaf1-4a1d-9f43-7ebf6213b955/resourceGroups/rg-herbalife-dev-core/providers/Microsoft.Databricks/workspaces/databricks-herbalife-dev"
+herbalife_databricks_workspace_name = "databricks-herbalife-dev"
+herbalife_eventhub_namespace_id = "/subscriptions/41497b8e-aaf1-4a1d-9f43-7ebf6213b955/resourceGroups/rg-herbalife-dev-core/providers/Microsoft.EventHub/namespaces/eh-herbalife-dev"
+herbalife_eventhub_namespace_name = "eh-herbalife-dev"
+herbalife_log_analytics_workspace_id = "/subscriptions/41497b8e-aaf1-4a1d-9f43-7ebf6213b955/resourceGroups/rg-herbalife-dev-core/providers/Microsoft.OperationalInsights/workspaces/law-herbalife-dev"
+herbalife_log_analytics_workspace_name = "law-herbalife-dev"
+herbalife_storage_account_id = "/subscriptions/41497b8e-aaf1-4a1d-9f43-7ebf6213b955/resourceGroups/rg-herbalife-dev-core/providers/Microsoft.Storage/storageAccounts/stherbalifedev001"
+herbalife_storage_account_name = "stherbalifedev001"
+rycrawl_test_server_public_ip = "20.7.51.208"
+
+# Lakehouse containers
+herbalife_raw_container_name = "raw"
+herbalife_bronze_container_name = "bronze"
+herbalife_silver_container_name = "silver"
+
+---
+
+### Resource Purpose and Phase Mapping
+
+| Resource Output                        | Purpose/Usage                                      | Phase(s)                          |
+|----------------------------------------|----------------------------------------------------|------------------------------------|
+| aks_cluster_name, aks_control_plane_fqdn | Kubernetes cluster for compute/workloads            | 1 (Foundation), 6 (AI/Analytics)   |
+| aviator_app_identity_client_id, aviator_app_identity_resource_id | Managed identity for secure access                  | 1 (Foundation), 5 (Governance)     |
+| hub_vnet_id                            | Core networking, secure connectivity                | 1 (Foundation)                     |
+| resource_group_name                    | Resource grouping and management                    | 1 (Foundation)                     |
+| herbalife_storage_account_id, herbalife_storage_account_name | ADLS Gen2 storage for data lakehouse                | 1 (Foundation), 3 (Ingestion)      |
+| herbalife_databricks_workspace_id, herbalife_databricks_workspace_name | Data processing, analytics, ML                      | 1 (Foundation), 4 (Transformation), 6 (AI/Analytics) |
+| herbalife_eventhub_namespace_id, herbalife_eventhub_namespace_name | Streaming data ingestion                             | 1 (Foundation), 3 (Ingestion)      |
+| herbalife_log_analytics_workspace_id, herbalife_log_analytics_workspace_name | Monitoring and logging                              | 1 (Foundation), 5 (Governance)     |
+| rycrawl_test_server_public_ip           | Demo/test server for training or sample workloads   | 1 (Foundation), Demo/Training      |
+| herbalife_raw_container_name            | Raw data landing zone (Bronze layer)               | 3 (Ingestion)                      |
+| herbalife_bronze_container_name         | Processed batch/stream data (Bronze layer)         | 3 (Ingestion), 4 (Transformation)  |
+| herbalife_silver_container_name         | Cleaned/conformed data (Silver layer)              | 4 (Transformation)                 |
+
+---
 ```
 
 These outputs are generated after a successful Terraform deployment and can be referenced for connecting services, automation, or documentation.
