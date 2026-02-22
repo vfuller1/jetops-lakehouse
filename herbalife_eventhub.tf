@@ -1,3 +1,4 @@
+  send = true
 resource "azurerm_eventhub_namespace" "herbalife_ns" {
   name                = "herbalife-clickstream-ns-prod"
   location            = "eastus2"
