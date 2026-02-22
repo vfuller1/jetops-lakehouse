@@ -19,7 +19,6 @@ resource "azurerm_eventhub_authorization_rule" "herbalife_send" {
   namespace_name      = azurerm_eventhub_namespace.herbalife_ns.name
   eventhub_name       = azurerm_eventhub.herbalife_hub.name
   resource_group_name = azurerm_eventhub_namespace.herbalife_ns.resource_group_name
-  access_rights       = ["Send"]
 }
 
 output "herbalife_eventhub_send_connection_string" {
