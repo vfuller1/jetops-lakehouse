@@ -21,12 +21,12 @@ output "herbalife_log_analytics_workspace_id" {
 
 output "herbalife_eventhub_namespace_name" {
   description = "Name of the Herbalife Event Hub namespace"
-  value       = azurerm_eventhub_namespace.HL_herbalife_dev.name
+  value       = azurerm_eventhub_namespace.herbalife_ns.name
 }
 
 output "herbalife_eventhub_namespace_id" {
   description = "ID of the Herbalife Event Hub namespace"
-  value       = azurerm_eventhub_namespace.HL_herbalife_dev.id
+  value       = azurerm_eventhub_namespace.herbalife_ns.id
 }
 
 output "herbalife_databricks_workspace_name" {

@@ -1,4 +1,4 @@
-name: 'Herbalife Lakehouse Deploy'
+name: 'Terraform Herbalife Prod'
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
 
 jobs:
   terraform:
-    name: 'Terraform Herbalife Dev'
+    name: 'Terraform Herbalife Prod'
     runs-on: ubuntu-latest
 
     steps:
@@ -25,8 +25,8 @@ jobs:
     - name: Terraform Init
       run: terraform init
 
-    - name: Terraform Plan (Herbalife Dev)
-      run: terraform plan -var-file="herbalife-dev.tfvars"
+    - name: Terraform Plan (Herbalife Prod)
+      run: terraform plan -var-file="herbalife-prod.tfvars"
 
-    - name: Terraform Apply (Herbalife Dev)
-      run: terraform apply -auto-approve -var-file="herbalife-dev.tfvars"
+    - name: Terraform Apply (Herbalife Prod)
+      run: terraform apply -auto-approve -var-file="herbalife-prod.tfvars"
