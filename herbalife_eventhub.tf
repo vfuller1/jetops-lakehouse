@@ -23,5 +23,6 @@ resource "azurerm_eventhub_authorization_rule" "herbalife_send" {
 }
 
 output "herbalife_eventhub_send_connection_string" {
-  value = azurerm_eventhub_authorization_rule.herbalife_send.primary_connection_string
+  value     = azurerm_eventhub_authorization_rule.herbalife_send.primary_connection_string
+  sensitive = true
 }
