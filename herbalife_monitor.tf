@@ -14,10 +14,8 @@ resource "azurerm_monitor_diagnostic_setting" "HL_herbalife_dev" {
 
   enabled_log {
     category = "StorageRead"
-    enabled  = true
   }
   enabled_log {
     category = "StorageWrite"
-    enabled  = true
   }
 }
