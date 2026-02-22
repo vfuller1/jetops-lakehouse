@@ -12,16 +12,12 @@ resource "azurerm_monitor_diagnostic_setting" "HL_herbalife_dev" {
   target_resource_id = azurerm_storage_account.HL_herbalife_dev.id
   log_analytics_workspace_id = azurerm_log_analytics_workspace.HL_herbalife_dev.id
 
-  log {
+  enabled_log {
     category = "StorageRead"
     enabled  = true
   }
-  log {
+  enabled_log {
     category = "StorageWrite"
-    enabled  = true
-  }
-  log {
-    category = "StorageDelete"
     enabled  = true
   }
 }
