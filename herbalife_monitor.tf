@@ -11,8 +11,4 @@ resource "azurerm_monitor_diagnostic_setting" "HL_herbalife_dev" {
   name               = "diag-herbalife-dev"
   target_resource_id = azurerm_storage_account.HL_herbalife_dev.id
   log_analytics_workspace_id = azurerm_log_analytics_workspace.HL_herbalife_dev.id
-
-  enabled_log {
-    category = "StorageWrite"
-  }
 }
