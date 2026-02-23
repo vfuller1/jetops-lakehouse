@@ -27,6 +27,12 @@ resource "azurerm_storage_container" "silver" {
   container_access_type = "private"
 }
 
+resource "azurerm_storage_container" "gold" {
+  name                  = "gold"
+  storage_account_name  = azurerm_storage_account.HL_herbalife_dev.name
+  container_access_type = "private"
+}
+
 # Assign Storage Blob Data Contributor role to user
 resource "azurerm_role_assignment" "blob_data_contributor" {
   scope                = azurerm_storage_account.HL_herbalife_dev.id
