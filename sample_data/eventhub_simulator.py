@@ -1,11 +1,12 @@
 import time
 import json
+import os
 from datetime import datetime
 from azure.eventhub import EventHubProducerClient, EventData
 
-# Replace with your Event Hub connection string and name
-CONNECTION_STR = "<YOUR_EVENT_HUB_CONNECTION_STRING>"
-EVENTHUB_NAME = "eventhub-herbalife-dev"
+# Use environment variables for Event Hub connection string and name
+CONNECTION_STR = os.environ.get("EVENTHUB_CONNECTION_STRING")
+EVENTHUB_NAME = os.environ.get("EVENTHUB_NAME")
 
 # Sample order event generator
 def generate_order_event(order_id):
