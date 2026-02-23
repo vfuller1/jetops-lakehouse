@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: aviator-dashboard
+  namespace: aviator-core
   labels:
     app: aviator
 spec:
@@ -27,6 +28,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: aviator-service
+  namespace: aviator-core
 spec:
   type: LoadBalancer
   selector:
@@ -41,4 +43,4 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: aviator-service-account
-  namespace: default
+  namespace: aviator-core
