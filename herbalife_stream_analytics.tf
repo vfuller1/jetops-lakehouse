@@ -7,7 +7,7 @@ resource "azurerm_stream_analytics_output_blob" "herbalife_raw_output" {
   storage_account_key      = azurerm_storage_account.HL_herbalife_dev.primary_access_key
   storage_container_name   = azurerm_storage_container.raw.name
   path_pattern             = "{date}/{time}"
-  time_format              = "yyyy/MM/dd/HH"
+  time_format              = "yyyy/MM/dd"
   date_format              = "yyyy/MM/dd"
   serialization {
     type     = "Json"
