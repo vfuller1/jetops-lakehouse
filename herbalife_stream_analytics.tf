@@ -21,15 +21,14 @@ resource "azurerm_service_plan" "function_plan" {
   # sku_tier removed; not valid for azurerm_service_plan
 }
 
-resource "azurerm_function_app" "eventhub_func" {
+resource "azurerm_linux_function_app" "eventhub_func" {
   name                       = "herbalife-eventhub-func"
   location                   = azurerm_resource_group.HL_herbalife_dev_core.location
   resource_group_name        = azurerm_resource_group.HL_herbalife_dev_core.name
-  app_service_plan_id        = azurerm_service_plan.function_plan.id
+  service_plan_id            = azurerm_service_plan.function_plan.id
   storage_account_name       = azurerm_storage_account.function_storage.name
   storage_account_access_key = azurerm_storage_account.function_storage.primary_access_key
   version                    = "~4"
-  os_type                    = "linux"
 
   app_settings = {
     FUNCTIONS_WORKER_RUNTIME      = "python"
@@ -40,11 +39,11 @@ resource "azurerm_function_app" "eventhub_func" {
 }
 
 output "function_app_name" {
-  value = azurerm_function_app.eventhub_func.name
+  value = azurerm_linux_function_app.eventhub_func.name
 }
 
 output "function_app_id" {
-  value = azurerm_function_app.eventhub_func.id
+  value = azurerm_linux_function_app.eventhub_func.id
 }
 resource "azurerm_stream_analytics_job" "herbalife_stream_job" {
   name                = "herbalife-stream-job"
