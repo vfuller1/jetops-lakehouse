@@ -1,4 +1,5 @@
 resource "databricks_cluster" "herbalife_single_node" {
+    access_mode = "SINGLE_USER"
   cluster_name            = "herbalife-single-node"
   spark_version           = "16.4.x-scala2.12"
   node_type_id            = "Standard_D8s_v3"
