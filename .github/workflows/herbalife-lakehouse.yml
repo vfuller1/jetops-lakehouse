@@ -24,9 +24,18 @@ jobs:
 
     - name: Terraform Init
       run: terraform init
+      env:
+        DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+        DATABRICKS_TOKEN: ${{ secrets.TERRAFORM_ACCESS }}
 
     - name: Terraform Plan (Herbalife Prod)
       run: terraform plan -var-file="herbalife-prod.tfvars"
+      env:
+        DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+        DATABRICKS_TOKEN: ${{ secrets.TERRAFORM_ACCESS }}
 
     - name: Terraform Apply (Herbalife Prod)
       run: terraform apply -auto-approve -var-file="herbalife-prod.tfvars"
+      env:
+        DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+        DATABRICKS_TOKEN: ${{ secrets.TERRAFORM_ACCESS }}
