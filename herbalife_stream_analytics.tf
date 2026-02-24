@@ -1,15 +1,3 @@
-resource "azurerm_stream_analytics_input_eventhub" "herbalife_eventhub_input" {
-  name                = "EventHubInput"
-  stream_analytics_job_name = azurerm_stream_analytics_job.herbalife_stream_job.name
-  resource_group_name = azurerm_resource_group.HL_herbalife_dev_core.name
-  eventhub_namespace = azurerm_eventhub_namespace.herbalife_ns.name
-  eventhub_name      = azurerm_eventhub.herbalife_hub.name
-  shared_access_policy_name = azurerm_eventhub_authorization_rule.herbalife_send.name
-  serialization {
-    type = "Json"
-    encoding = "UTF8"
-  }
-}
 
 resource "azurerm_stream_analytics_output_blob" "herbalife_raw_output" {
   name                = "DataLakeOutput"
@@ -20,6 +8,7 @@ resource "azurerm_stream_analytics_output_blob" "herbalife_raw_output" {
   storage_container_name   = azurerm_storage_container.raw.name
   path_pattern             = "{date}/{time}"
   time_format              = "yyyy/MM/dd/HH/mm"
+  date_format              = "yyyy/MM/dd"
   serialization {
     type     = "Json"
     encoding = "UTF8"
