@@ -12,6 +12,7 @@ resource "azurerm_stream_analytics_output_blob" "herbalife_raw_output" {
   serialization {
     type     = "Json"
     encoding = "UTF8"
+    format   = "LineSeparated"
   }
 }
 resource "random_string" "suffix" {
