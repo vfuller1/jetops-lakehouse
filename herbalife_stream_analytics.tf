@@ -15,11 +15,13 @@ resource "azurerm_stream_analytics_output_blob" "herbalife_raw_output" {
   name                = "DataLakeOutput"
   stream_analytics_job_name = azurerm_stream_analytics_job.herbalife_stream_job.name
   resource_group_name = azurerm_resource_group.HL_herbalife_dev_core.name
-  storage_account_name = azurerm_storage_account.HL_herbalife_dev.name
-  storage_account_key  = azurerm_storage_account.HL_herbalife_dev.primary_access_key
-  container_name       = azurerm_storage_container.raw.name
+  storage_account_name     = azurerm_storage_account.HL_herbalife_dev.name
+  storage_account_key      = azurerm_storage_account.HL_herbalife_dev.primary_access_key
+  storage_container_name   = azurerm_storage_container.raw.name
+  path_pattern             = "{date}/{time}"
+  time_format              = "yyyy/MM/dd/HH/mm"
   serialization {
-    type = "Json"
+    type     = "Json"
     encoding = "UTF8"
   }
 }

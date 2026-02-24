@@ -1,3 +1,6 @@
+## Lakehouse Data Flow
+
+Function App → Event Hub → Stream Analytics Job → Blob Storage (raw) → Bronze → Silver → Gold
 # Phased Plan for Building a Lakehouse (Development/Training)
 
 This document outlines a clear, actionable phased plan for building your Lakehouse in a development or training environment, including a dedicated data input strategy.
