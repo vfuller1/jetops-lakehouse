@@ -1,0 +1,7 @@
+herbalife_project = "herbalife"
+herbalife_environment = "prod"
+herbalife_region = "eastus2"
+herbalife_resource_group_name = "rg-herbalife-prod-core"
+herbalife_storage_account_name = "stherbalifeprod001"
+herbalife_databricks_workspace_name = "databricks-herbalife-prod"
+herbalife_eventhub_namespace_name = "herbalife-clickstream-ns-prod"

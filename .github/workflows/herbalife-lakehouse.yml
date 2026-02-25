@@ -1,0 +1,41 @@
+name: 'Terraform Herbalife Prod'
+
+on:
+  push:
+    branches: [ "herbalife-dev" ]
+  workflow_dispatch:
+
+jobs:
+  terraform:
+    name: 'Terraform Herbalife Prod'
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+
+    - name: Terraform Init
+      run: terraform init
+      env:
+        DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+        DATABRICKS_TOKEN: ${{ secrets.TERRAFORM_ACCESS }}
+
+    - name: Terraform Plan (Herbalife Prod)
+      run: terraform plan -var-file="herbalife-prod.tfvars"
+      env:
+        DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+        DATABRICKS_TOKEN: ${{ secrets.TERRAFORM_ACCESS }}
+
+    - name: Terraform Apply (Herbalife Prod)
+      run: terraform apply -auto-approve -var-file="herbalife-prod.tfvars"
+      env:
+        DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+        DATABRICKS_TOKEN: ${{ secrets.TERRAFORM_ACCESS }}
