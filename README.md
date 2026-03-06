@@ -1,7 +1,7 @@
 # Net-New Enterprise Lakehouse Build
 
 ## 1️⃣ What We Are Building
-We are building a net-new Azure Lakehouse platform from scratch. This is not a migration, lift-and-shift, or upgrade. It is a cloud-native data platform designed to:
+This Azure Lakehouse platform from scratch. It is a cloud-native data platform designed to:
 - Ingest enterprise data (batch + streaming)
 - Store it in a structured Medallion architecture
 - Enable real-time analytics
@@ -36,7 +36,7 @@ No VMs. Cloud-native. Scalable.
 
 ## 2️⃣ Why We Are Building It
 ### 🎯 Business Drivers
-From the earlier Data Lake Recommendations, the organization needed:
+This organization need:
 - Product recommendations
 - Upsell/cross-sell analytics
 - Churn prediction
@@ -46,7 +46,6 @@ From the earlier Data Lake Recommendations, the organization needed:
 - Real-time insights
 - Machine intelligence enablement
 
-The old model (Data Lake only) was storage-centric. The new model (Lakehouse) is intelligence-centric.
 
 ### 🧠 Strategic Goals
 We are building this to:
@@ -67,7 +66,7 @@ Lakehouse allows:
 - Reduced data duplication
 - Lower operational complexity
 - Better cost optimization
-- Modern Microsoft alignment
+
 
 ## 3️⃣ The AI Component
 This is not just storage. We are enabling:
