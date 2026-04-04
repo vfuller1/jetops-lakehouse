@@ -23,9 +23,18 @@ jobs:
 
     - name: Terraform Init
       run: terraform init
+      env:
+        DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+        DATABRICKS_TOKEN: ${{ secrets.TERRAFORM_ACCESS }}
 
     - name: Terraform Plan
       run: terraform plan
+      env:
+        DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+        DATABRICKS_TOKEN: ${{ secrets.TERRAFORM_ACCESS }}
 
     - name: Terraform Apply
       run: terraform apply -auto-approve
+      env:
+        DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+        DATABRICKS_TOKEN: ${{ secrets.TERRAFORM_ACCESS }}

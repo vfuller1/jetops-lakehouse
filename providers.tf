@@ -33,4 +33,6 @@ provider "azurerm" {
   }
 }
 
-provider "databricks" {}
+provider "databricks" {
+  auth_type = "pat"
+}
