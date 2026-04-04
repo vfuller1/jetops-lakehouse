@@ -6,10 +6,6 @@ terraform {
       source  = "hashicorp/azurerm"
       version = ">= 3.80.0"
     }
-    databricks = {
-      source  = "databricks/databricks"
-      version = ">= 1.0.0"
-    }
   }
 
   # This block keeps your local environment in sync with Azure and GitHub
@@ -31,8 +27,4 @@ provider "azurerm" {
       prevent_deletion_if_contains_resources = false
     }
   }
-}
-
-provider "databricks" {
-  auth_type = "pat"
 }

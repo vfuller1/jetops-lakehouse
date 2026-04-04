@@ -103,6 +103,5 @@ locals {
     Project     = var.herbalife_project
     Environment = var.herbalife_environment
     ManagedBy   = "Terraform"
-    CreatedDate = timestamp()
   }
 }

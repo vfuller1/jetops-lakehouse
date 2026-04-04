@@ -22,48 +22,11 @@ jobs:
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2
 
-    - name: Validate Databricks Host
-      shell: bash
-      env:
-        DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-      run: |
-        python - <<'PY'
-        import os
-        import socket
-        import sys
-        from urllib.parse import urlparse
-
-        raw_host = os.environ.get("DATABRICKS_HOST", "").strip()
-        if not raw_host:
-            sys.exit("DATABRICKS_HOST is empty")
-
-        parsed = urlparse(raw_host if "://" in raw_host else f"https://{raw_host}")
-        hostname = parsed.hostname
-        if not hostname:
-            sys.exit("DATABRICKS_HOST must be a full Databricks workspace URL, for example https://adb-1234567890123456.7.azuredatabricks.net")
-
-        try:
-            socket.gethostbyname(hostname)
-        except OSError as exc:
-            sys.exit(f"DATABRICKS_HOST is not resolvable: {hostname} ({exc})")
-
-        print(f"Validated DATABRICKS_HOST hostname: {hostname}")
-        PY
-
     - name: Terraform Init
       run: terraform init
-      env:
-        DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-        DATABRICKS_TOKEN: ${{ secrets.TERRAFORM_ACCESS }}
 
     - name: Terraform Plan (Herbalife Prod)
       run: terraform plan -var-file="herbalife-prod.tfvars"
-      env:
-        DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-        DATABRICKS_TOKEN: ${{ secrets.TERRAFORM_ACCESS }}
 
     - name: Terraform Apply (Herbalife Prod)
       run: terraform apply -auto-approve -var-file="herbalife-prod.tfvars"
-      env:
-        DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-        DATABRICKS_TOKEN: ${{ secrets.TERRAFORM_ACCESS }}
