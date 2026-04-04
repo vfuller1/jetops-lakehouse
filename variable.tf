@@ -92,6 +92,12 @@ variable "herbalife_eventhub_namespace_name" {
   default     = "evh-herbalife-dev"
 }
 
+variable "enable_herbalife_storage_role_assignment" {
+  description = "Whether Terraform should create the optional Storage Blob Data Contributor assignment for the fixed principal."
+  type        = bool
+  default     = false
+}
+
 locals {
   herbalife_common_tags = {
     Project     = var.herbalife_project

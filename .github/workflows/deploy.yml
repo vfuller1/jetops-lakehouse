@@ -18,6 +18,19 @@ jobs:
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+    - name: Start AKS If Stopped
+      shell: bash
+      run: |
+        state=$(az aks show --resource-group rg-aviator-core-prod --name aks-aviator-core --query powerState.code -o tsv 2>/dev/null || true)
+        if [ -z "$state" ]; then
+          echo "AKS cluster not found or power state unavailable; continuing"
+        elif [ "$state" = "Stopped" ]; then
+          echo "AKS cluster is stopped. Starting it before Terraform apply."
+          az aks start --resource-group rg-aviator-core-prod --name aks-aviator-core
+        else
+          echo "AKS power state: $state"
+        fi
+
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2
 
