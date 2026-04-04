@@ -20,6 +20,8 @@ provider "databricks" {
   auth_type = "pat"
 }
 
+data "databricks_current_user" "me" {}
+
 resource "databricks_cluster" "herbalife_single_node" {
   cluster_name                 = "herbalife-single-node"
   spark_version                = "16.4.x-scala2.12"
@@ -29,6 +31,8 @@ resource "databricks_cluster" "herbalife_single_node" {
   runtime_engine               = "PHOTON"
   is_single_node               = true
   kind                         = "CLASSIC_PREVIEW"
+  data_security_mode           = "SINGLE_USER"
+  single_user_name             = data.databricks_current_user.me.user_name
   enable_elastic_disk          = true
   enable_local_disk_encryption = false
 }
