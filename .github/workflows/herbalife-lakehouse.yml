@@ -2,7 +2,10 @@ name: 'Terraform Herbalife Prod'
 
 on:
   push:
-    branches: [ "herbalife-dev" ]
+    branches: [ "main", "herbalife-dev" ]
+    paths:
+      - "lakehouse/**"
+      - ".github/workflows/herbalife-lakehouse.yml"
   workflow_dispatch:
 
 jobs:

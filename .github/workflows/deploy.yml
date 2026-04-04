@@ -3,6 +3,11 @@ name: 'Aviator Core Deploy'
 on:
   push:
     branches: [ "main" ]
+    paths-ignore:
+      - "lakehouse/**"
+      - "databricks_cluster/**"
+      - ".github/workflows/herbalife-lakehouse.yml"
+      - ".github/workflows/databricks-cluster.yml"
 
 jobs:
   terraform:
