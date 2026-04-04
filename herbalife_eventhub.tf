@@ -8,8 +8,7 @@ resource "azurerm_eventhub_namespace" "herbalife_ns" {
 
 resource "azurerm_eventhub" "herbalife_hub" {
   name                = "herbalife-clickstream-hub-prod"
-  namespace_name      = azurerm_eventhub_namespace.herbalife_ns.name
-  resource_group_name = azurerm_eventhub_namespace.herbalife_ns.resource_group_name
+  namespace_id        = azurerm_eventhub_namespace.herbalife_ns.id
   partition_count     = 2
   message_retention   = 1
 }
