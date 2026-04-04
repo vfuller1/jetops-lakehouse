@@ -32,3 +32,5 @@ provider "azurerm" {
     }
   }
 }
+
+provider "databricks" {}
