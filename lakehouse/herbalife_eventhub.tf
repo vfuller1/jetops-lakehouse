@@ -7,10 +7,10 @@ resource "azurerm_eventhub_namespace" "herbalife_ns" {
 }
 
 resource "azurerm_eventhub" "herbalife_hub" {
-  name                = "herbalife-clickstream-hub-prod"
-  namespace_id        = azurerm_eventhub_namespace.herbalife_ns.id
-  partition_count     = 2
-  message_retention   = 1
+  name              = "herbalife-clickstream-hub-prod"
+  namespace_id      = azurerm_eventhub_namespace.herbalife_ns.id
+  partition_count   = 2
+  message_retention = 1
 }
 
 resource "azurerm_eventhub_authorization_rule" "herbalife_send" {

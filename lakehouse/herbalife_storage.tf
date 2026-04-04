@@ -8,7 +8,6 @@ resource "azurerm_storage_account" "HL_herbalife_dev" {
   tags                     = local.herbalife_common_tags
 }
 
-# Lakehouse containers
 resource "azurerm_storage_container" "raw" {
   name                  = "raw"
   storage_account_id    = azurerm_storage_account.HL_herbalife_dev.id
@@ -33,7 +32,6 @@ resource "azurerm_storage_container" "gold" {
   container_access_type = "private"
 }
 
-# Assign Storage Blob Data Contributor role to user
 resource "azurerm_role_assignment" "blob_data_contributor" {
   count                = var.enable_herbalife_storage_role_assignment ? 1 : 0
   scope                = azurerm_storage_account.HL_herbalife_dev.id

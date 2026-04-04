@@ -1,6 +1,3 @@
-# Herbalife Lakehouse Phase 1 Network Resources
-# All resources are new and use the 'HL' prefix to avoid conflicts with JetOps.
-
 resource "azurerm_resource_group" "HL_herbalife_dev_core" {
   name     = var.herbalife_resource_group_name
   location = var.herbalife_region
