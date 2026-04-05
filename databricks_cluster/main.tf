@@ -26,6 +26,17 @@ resource "databricks_directory" "herbalife_workspace" {
   path = "/Shared/Herbalife"
 }
 
+resource "databricks_secret_scope" "herbalife_storage" {
+  name                     = var.herbalife_databricks_secret_scope
+  initial_manage_principal = "users"
+}
+
+resource "databricks_secret" "bronze_sas_token" {
+  scope        = databricks_secret_scope.herbalife_storage.name
+  key          = var.herbalife_bronze_sas_secret_key
+  string_value = var.herbalife_bronze_sas_token
+}
+
 resource "databricks_cluster" "herbalife_single_node" {
   cluster_name                 = "herbalife-single-node"
   spark_version                = "16.4.x-scala2.12"
@@ -70,4 +81,8 @@ output "herbalife_databricks_notebook_path" {
 
 output "herbalife_databricks_job_url" {
   value = databricks_job.configure_sas_access.url
+}
+
+output "herbalife_databricks_secret_scope" {
+  value = databricks_secret_scope.herbalife_storage.name
 }

@@ -64,6 +64,7 @@ jobs:
       env:
         DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
         DATABRICKS_TOKEN: ${{ secrets.TERRAFORM_ACCESS }}
+        TF_VAR_herbalife_bronze_sas_token: ${{ secrets.HERBALIFE_BRONZE_SAS_TOKEN }}
 
     - name: Terraform Plan
       working-directory: databricks_cluster
@@ -71,6 +72,7 @@ jobs:
       env:
         DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
         DATABRICKS_TOKEN: ${{ secrets.TERRAFORM_ACCESS }}
+        TF_VAR_herbalife_bronze_sas_token: ${{ secrets.HERBALIFE_BRONZE_SAS_TOKEN }}
 
     - name: Terraform Apply
       working-directory: databricks_cluster
@@ -78,3 +80,4 @@ jobs:
       env:
         DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
         DATABRICKS_TOKEN: ${{ secrets.TERRAFORM_ACCESS }}
+        TF_VAR_herbalife_bronze_sas_token: ${{ secrets.HERBALIFE_BRONZE_SAS_TOKEN }}
