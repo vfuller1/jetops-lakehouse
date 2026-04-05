@@ -31,10 +31,10 @@ resource "databricks_secret_scope" "herbalife_storage" {
   initial_manage_principal = "users"
 }
 
-resource "databricks_secret" "bronze_sas_token" {
+resource "databricks_secret" "raw_sas_token" {
   scope        = databricks_secret_scope.herbalife_storage.name
-  key          = var.herbalife_bronze_sas_secret_key
-  string_value = var.herbalife_bronze_sas_token
+  key          = var.herbalife_raw_sas_secret_key
+  string_value = var.herbalife_raw_sas_token
 }
 
 resource "databricks_cluster" "herbalife_single_node" {

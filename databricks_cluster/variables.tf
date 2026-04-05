@@ -4,14 +4,14 @@ variable "herbalife_databricks_secret_scope" {
   default     = "herbalife-storage"
 }
 
-variable "herbalife_bronze_sas_secret_key" {
-  description = "Secret key name that stores the bronze container SAS token."
+variable "herbalife_raw_sas_secret_key" {
+  description = "Secret key name that stores the raw container SAS token."
   type        = string
-  default     = "bronze-sas-token"
+  default     = "raw-sas-token"
 }
 
-variable "herbalife_bronze_sas_token" {
-  description = "SAS token for the Herbalife bronze container. Supply this via TF_VAR_herbalife_bronze_sas_token or a CI secret."
+variable "herbalife_raw_sas_token" {
+  description = "SAS token for the Herbalife raw container. Supply this via TF_VAR_herbalife_raw_sas_token or a CI secret."
   type        = string
   sensitive   = true
 }
