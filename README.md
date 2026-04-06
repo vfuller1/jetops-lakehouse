@@ -1,314 +1,148 @@
-# Net-New Enterprise Lakehouse Build
+# JetOps Lakehouse
 
-## 1️⃣ What We Are Building
-We are building a net-new Azure Lakehouse platform from scratch. This is not a migration, lift-and-shift, or upgrade. It is a cloud-native data platform designed to:
-- Ingest enterprise data (batch + streaming)
-- Store it in a structured Medallion architecture
-- Enable real-time analytics
-- Support machine learning
-- Provide governed self-service BI
-- Be deployed entirely via Infrastructure as Code
+JetOps Lakehouse is an Azure-first maintenance operations reference project. It combines Terraform-managed infrastructure, a Databricks medallion pipeline, a synthetic Event Hubs producer, a Gold KPI API, and Azure AI Foundry integration notes for a fleet-maintenance copilot.
 
-## 🏗 Core Architecture
-```
-Sources
-   ↓
-Ingestion (Batch + Streaming + API)
-   ↓
-Bronze (Raw)
-   ↓
-Silver (Cleaned + Conformed)
-   ↓
-Gold (Business Curated)
-   ↓
-BI / ML / Dashboards / APIs
-```
-**Key components:**
-- ADLS Gen2 (Lakehouse storage)
-- Delta Lake (ACID + schema enforcement)
-- Databricks (transformations + ML)
-- Event Hub (live streaming)
-- Azure Functions (event generator)
-- Governance + Catalog
-- CI/CD + Terraform
+This repo is centered on JetOps maintenance events and the path from event generation to Gold KPI serving.
 
-No VMs. Cloud-native. Scalable.
+## What Is In This Repo
 
-## 📊 JetOps Reference Diagrams
+- Terraform for Azure storage, networking, Databricks, Event Hubs, and related lakehouse components.
+- An Azure Functions app that generates synthetic maintenance events into Event Hubs.
+- Databricks notebooks for Bronze, Silver, and Gold maintenance processing.
+- A Flask API that serves Gold KPI snapshots from ADLS Gen2.
+- Azure AI Foundry setup notes and version-management scripts for a maintenance copilot.
 
-### Current Ingestion Slice
+## Architecture
+
 ```mermaid
 flowchart LR
-   A[Azure Function App\nGenerate JetOps Maintenance Events] --> B[Azure Event Hub\njetops-maintenance-events-dev]
-   B --> C[Event Hubs Capture\nAvro batches every 5 min or 10 MB]
-   C --> D[ADLS Gen2 Raw Container\nraw/jetops-maintenance/...]
-   D --> E[Databricks Notebook\nconfigure_sas_access.ipynb]
-   E --> F[Parsed Raw Maintenance Events\nSchema validation and preview]
-   F --> G[Next Step: Bronze Delta Tables\nStreaming or scheduled ingestion job]
-
-   H[HTTP Trigger\n/api/maintenance-events/generate] --> A
-   I[local.settings.json\nEvent Hub connection settings] --> A
-   J[Databricks Secret Scope\nraw-sas-token] --> E
+   A[Azure Function HTTP Trigger\nmaintenance-events/generate] --> B[Azure Event Hubs\njetops-maintenance-events-dev]
+   B --> C[Event Hubs Capture\nAvro in raw container]
+   C --> D[Databricks Bronze Notebook]
+   D --> E[Databricks Silver Notebook]
+   E --> F[Databricks Gold Notebook]
+   F --> G[Gold KPI JSON Snapshots\nin ADLS Gen2 gold container]
+   G --> H[Flask Gold KPI API\napp/app.py]
+   H --> I[Azure AI Foundry\nmaintenance copilot]
 ```
 
-### Future Bronze To Silver To Gold Flow
-```mermaid
-flowchart LR
-   A[MRO Work Orders\nMaintenance Logs] --> D[Ingestion Layer]
-   B[Aircraft Telemetry\nEvent Hub Streams] --> D
-   C[Inspection Files\nCSV API SQL] --> D
+## Main Components
 
-   D --> E[Bronze\nRaw Avro JSON Parquet\nImmutable landing zone]
-   E --> F[Silver\nValidated conformed maintenance data\nAircraft, component, technician, work order models]
-   F --> G[Gold\nFleet reliability, AOG trends, turnaround KPIs, compliance marts]
+### Infrastructure
 
-   G --> H[Power BI\nOperations dashboards]
-   G --> I[Databricks ML\nPredictive maintenance and failure forecasting]
-   G --> J[Operational APIs\nMaintenance status and alerts]
+- Root Terraform files provision the baseline Azure environment.
+- The [lakehouse/herbalife_eventhub.tf](lakehouse/herbalife_eventhub.tf) module adds the Event Hub namespace and hub wiring used by the JetOps event flow.
+- Environment-specific names are carried through the tracked Terraform variables and `tfvars` values.
+
+### Event Generator
+
+The Azure Functions app under [azure_function_eventhub/__init__.py](azure_function_eventhub/__init__.py) and [azure_function_eventhub/function_app.py](azure_function_eventhub/function_app.py) exposes an HTTP-triggered endpoint that sends synthetic maintenance events to Event Hubs.
+
+Key behavior:
+
+- Route: `GET` or `POST` `/api/maintenance-events/generate`
+- Default volume: `25` events
+- Optional repeatability: `seed`
+- Max volume: `500` events per request
+
+The event payload generator lives in [azure_function_eventhub/maintenance_events.py](azure_function_eventhub/maintenance_events.py).
+
+### Databricks Medallion Notebooks
+
+The notebooks under [app/bronze_maintenance_events.ipynb](app/bronze_maintenance_events.ipynb), [app/silver_maintenance_events.ipynb](app/silver_maintenance_events.ipynb), [app/gold_maintenance_kpis.ipynb](app/gold_maintenance_kpis.ipynb), and [app/gold_kpi_inspection.ipynb](app/gold_kpi_inspection.ipynb) implement the maintenance-event pipeline.
+
+Current flow:
+
+1. Bronze reads raw Event Hubs capture and normalizes maintenance events.
+2. Silver cleans and deduplicates events.
+3. Gold builds KPI marts for daily operations, component reliability, and fleet status.
+4. Gold also writes JSON snapshot outputs for the serving API.
+
+The Databricks job chain definition is in [databricks_cluster/maintenance_notebook_job_chain.json](databricks_cluster/maintenance_notebook_job_chain.json).
+
+### Gold KPI API
+
+The API in [app/app.py](app/app.py) serves curated KPI data backed by [app/gold_kpi_service.py](app/gold_kpi_service.py).
+
+Primary endpoints:
+
+- `GET /api/gold/health`
+- `GET /api/gold/metadata`
+- `GET /api/gold/openapi.json`
+- `GET /api/gold/kpis/executive`
+- `GET /api/gold/kpis/daily-operations?days=14`
+- `GET /api/gold/kpis/component-reliability?days=7&limit=20`
+- `GET /api/gold/kpis/fleet-watchlist?limit=50`
+
+Important behavior:
+
+- All `/api/gold/*` routes require the `x-api-key` header.
+- The API reads JSON snapshots from the Gold container in ADLS Gen2.
+- The root `/` route still supports a legacy SQL-backed dashboard when `JETOPS_SQL_CONNECTION_STRING` is configured.
+
+The OpenAPI contract checked into the repo is [app/gold_kpi_api_openapi.json](app/gold_kpi_api_openapi.json).
+
+### Azure AI Foundry
+
+The Foundry integration notes are in [azure_foundry_incorporation.md](azure_foundry_incorporation.md) and [foundry/fleet_maintenance_copilot_setup.md](foundry/fleet_maintenance_copilot_setup.md).
+
+The version-management script is [scripts/manage_foundry_agent_versions.py](scripts/manage_foundry_agent_versions.py). It is intended to:
+
+- fetch the protected OpenAPI document
+- attach it to the Foundry agent through the `jetops-gold-api-key` project connection
+- create a new agent version
+- compare the latest versions on a fixed question set
+
+The stored comparison artifact is [foundry/agent_version_comparison.json](foundry/agent_version_comparison.json).
+
+#### Foundry Playground Example
+
+The screenshot below shows the current Azure AI Foundry playground setup using `Agent400` for a quick chat validation run inside the `fleet-maintenance-copilot` project.
+
+![Azure AI Foundry agents playground example](picture/Agent.png)
+
+## Repo Layout
+
+```text
+.
+|-- app/
+|   |-- app.py
+|   |-- gold_kpi_service.py
+|   |-- bronze_maintenance_events.ipynb
+|   |-- silver_maintenance_events.ipynb
+|   |-- gold_maintenance_kpis.ipynb
+|   |-- gold_kpi_inspection.ipynb
+|   `-- configure_sas_access.ipynb
+|-- azure_function_eventhub/
+|   |-- __init__.py
+|   |-- function_app.py
+|   |-- maintenance_events.py
+|   |-- local.settings.sample.json
+|   `-- smoke_test.py
+|-- databricks_cluster/
+|   `-- maintenance_notebook_job_chain.json
+|-- foundry/
+|   |-- fleet_maintenance_copilot_setup.md
+|   `-- agent_version_comparison.json
+|-- lakehouse/
+|   |-- herbalife_eventhub.tf
+|   |-- outputs.tf
+|   `-- variables.tf
+`-- scripts/
+    `-- manage_foundry_agent_versions.py
 ```
 
-### Executive Architecture View
-Note: Mermaid in README does not reliably support official Azure service icons across all renderers, so this diagram uses labeled Azure service blocks.
+## Prerequisites
 
-```mermaid
-flowchart TB
-   subgraph Ops[JetOps Operational Sources]
-      A1[Maintenance Management System]
-      A2[Aircraft Telemetry and Sensor Feeds]
-      A3[Technician Inspection Updates]
-   end
+- Python `3.11+` for the Flask API and Azure Function local runs.
+- Azure Functions Core Tools for local Function testing.
+- Azure CLI for storage-key lookup and other Azure operations.
+- Access to the target Azure subscription, Databricks workspace, storage account, and Event Hub.
+- Databricks workspace access if you want to run the notebooks in-cluster.
 
-   subgraph Ingest[Azure Ingestion Services]
-      B1[Azure Functions\nSynthetic and API-driven event generation]
-      B2[Azure Event Hubs\nStreaming ingress and buffering]
-   end
+## Local Workflows
 
-   subgraph Lake[Azure Lakehouse Platform]
-      C1[ADLS Gen2 Raw]
-      C2[Databricks Bronze]
-      C3[Databricks Silver]
-      C4[Databricks Gold]
-      C5[Azure Monitor and Log Analytics]
-   end
-
-   subgraph Consume[Analytics and Business Consumption]
-      D1[Power BI Executive Reporting]
-      D2[Operational Fleet Health Dashboards]
-      D3[Predictive Maintenance Models]
-   end
-
-   A1 --> B1
-   A2 --> B2
-   A3 --> B1
-   B1 --> B2
-   B2 --> C1
-   C1 --> C2
-   C2 --> C3
-   C3 --> C4
-   B2 --> C5
-   C4 --> D1
-   C4 --> D2
-   C4 --> D3
-```
-
-## 2️⃣ Why We Are Building It
-### 🎯 Business Drivers
-JetOps needs a cloud-native data platform that can unify maintenance operations, aircraft telemetry, technician updates, and inspection records in one governed environment. The platform is designed to support:
-- Fleet reliability analytics
-- Aircraft on ground reduction
-- Faster maintenance turnaround decisions
-- Predictive maintenance readiness
-- Parts demand forecasting
-- Compliance and audit visibility
-- Real-time operational insight
-- Machine intelligence enablement
-
-The old model (Data Lake only) was storage-centric. The new model (Lakehouse) is intelligence-centric.
-
-### 🧠 Strategic Goals
-We are building this to:
-1. Reduce aircraft downtime
-2. Improve maintenance schedule adherence
-3. Enable real-time fleet health visibility
-4. Reduce manual operational reporting
-5. Improve parts and labor forecasting
-6. Support maintenance compliance and audit readiness
-7. Enable AI-ready maintenance operations
-8. Standardize enterprise governance
-
-### 🚀 Technical Motivation
-Lakehouse allows:
-- BI and ML on the same data
-- Streaming + batch unified
-- ACID transactions
-- Reduced data duplication
-- Lower operational complexity
-- Better cost optimization
-- Modern Microsoft alignment
-
-## 3️⃣ The AI Component
-This is not just storage. We are enabling:
-- Predictive maintenance and component failure forecasting
-- AOG risk scoring
-- Work order prioritization
-- Parts demand forecasting
-- Inspection anomaly detection
-- Executive fleet operations Q&A
-
-The Lakehouse becomes the foundation for intelligent business decisions.
-
-## 4️⃣ Process for Creating It
-### Phase 1 — Foundation (Platform Layer)
-1. Select subscription
-2. Establish landing zone
-3. Configure RBAC + security baseline
-4. Deploy core storage (ADLS)
-5. Deploy processing engine (Databricks)
-6. Deploy streaming layer (Event Hub)
-7. Set up CI/CD + Terraform state
-8. Establish monitoring + logging
-
-**Outcome:** Secure, empty Lakehouse skeleton.
-
-### Phase 2 — Data Input Phase
-1. Identify and document all data sources (batch, streaming, APIs).
-2. Set up secure connections to source systems.
-3. Define data contracts and formats.
-4. Schedule or trigger data extractions as needed.
-
-**Outcome:** Data sources are connected and ready for ingestion.
-
-
-### Phase 3 — Ingestion
-1. Build batch ingestion pipelines
-2. Build streaming ingestion pipelines
-3. (Optional) Generate synthetic live data (Azure Function)
-4. Write raw data to Bronze layer
-
-**Outcome:** Live data flowing into the Lakehouse.
-
-### Phase 3 — Transformation
-1. Clean and validate in Silver
-2. Apply data quality rules
-3. Conform aircraft/component/technician/work order models
-4. Create Gold operational marts
-5. Optimize Delta partitions
-
-**Outcome:** Analytics-ready data.
-
-### Phase 4 — Governance
-1. Enable catalog + lineage
-2. Apply sensitivity labels
-3. Define retention policies
-4. Set role-based access
-5. Monitor access patterns
-
-**Outcome:** Enterprise compliance readiness.
-
-### Phase 5 — Analytics & AI
-1. Engineer features
-2. Train ML models for maintenance and reliability
-3. Register model
-4. Batch score or stream inference
-5. Write results to Gold tables
-6. Build dashboards
-
-**Outcome:** Business intelligence + predictive capability.
-
-## 5️⃣ What Makes This Enterprise-Grade
-- Persona-based design
-- Real-time processing requirement
-- Machine intelligence enablement
-- Governance and compliance alignment
-- Dev/Test/Prod cost planning approach
-- Pod-based delivery structure
-
-We are not just building pipelines. We are building a data platform capability.
-
-## 6️⃣ Executive Summary
-We are building a net-new Azure Lakehouse platform to unify JetOps maintenance data, aircraft telemetry, and inspection workflows into a governed, scalable architecture that supports real-time analytics and machine learning. The platform uses a Medallion Delta design, supports streaming and batch ingestion, enables AI use cases like predictive maintenance and AOG risk scoring, and is deployed entirely through Infrastructure as Code to ensure repeatability and enterprise compliance.
-
-## 7️⃣ “What Is the Outcome?”
-- Faster decisions
-- Better fleet readiness
-- Improved forecasting
-- Reduced operational risk
-- AI-ready enterprise data foundation
-
----
-
-# JetOps (Enterprise Scenario)
-This repo is framed as a JetOps maintenance and fleet operations platform.
-
-**Company:** JetOps
-
-**Audience:**
-- Maintenance Control Leadership
-- Fleet Operations
-- Reliability Engineering
-- IT Platform Engineering
-- Data and Analytics Organization
-
----
-
-## 🎯 What Use Cases Does This Solve?
-### 🟢 Maintenance And Fleet Operations Use Cases
-1. Aircraft maintenance log visibility in real time
-2. AOG trend tracking by tail number, component, and hangar
-3. Work order aging and turnaround analytics
-4. Technician productivity and labor utilization analysis
-5. Parts demand forecasting for critical components
-6. Inspection compliance and audit traceability
-7. Fleet reliability and repeat-failure detection
-
-These directly support:
-- Predictive maintenance models
-- AOG risk scoring
-- Maintenance performance analytics
-
-### 🔵 Telemetry And Reliability Use Cases
-1. Sensor anomaly detection from aircraft telemetry
-2. Component fault trend analysis
-3. Dispatch readiness monitoring
-4. Maintenance event correlation with telemetry spikes
-5. Failure forecasting for high-value systems
-
-These support:
-- Reliability engineering
-- Operational planning
-- Predictive maintenance and alerting
-
-### 🧠 What This Lakehouse Actually Solves
-| Business Challenge           | How the Lakehouse Solves It         |
-|-----------------------------|-------------------------------------|
-| Data silos                  | Unified Medallion storage           |
-| Slow reporting              | Real-time ingestion + Gold tables   |
-| Aircraft downtime           | Maintenance event visibility + predictive models |
-| Parts shortages             | Time-series demand forecasting      |
-| Compliance risk             | Governance + lineage                |
-| Reactive maintenance        | Reliability analytics + anomaly detection |
-
-### 🏗 What It Is NOT
-It is not:
-- Just a storage system
-- Just a BI project
-- Just a streaming project
-- Just a machine learning model
-
-It is:
-An enterprise data platform capability.
-
----
-
-## ▶️ Local Validation Runbook
-
-### Run The JetOps Function App
-1. Install Python 3.12 and Azure Functions Core Tools on Windows.
-2. Open a new terminal after install so `py` and `func` are on PATH.
-3. Change to the Azure Functions project folder.
-4. Copy `local.settings.sample.json` to `local.settings.json` and set `EVENTHUB_CONNECTION_STRING` and `EVENTHUB_NAME`.
-5. Install Python dependencies.
-6. Start the Functions host.
+### 1. Run The Azure Function Locally
 
 ```powershell
 cd c:\LocalRepo\jetops-lakehouse-1\azure_function_eventhub
@@ -317,8 +151,7 @@ py -m pip install -r requirements.txt
 func start
 ```
 
-### Send Fake JetOps Maintenance Events
-The HTTP route sends 25 records by default. You can override the volume with `count` and make the data repeatable with `seed`.
+Then send synthetic events:
 
 ```powershell
 Invoke-RestMethod "http://localhost:7071/api/maintenance-events/generate"
@@ -326,15 +159,84 @@ Invoke-RestMethod "http://localhost:7071/api/maintenance-events/generate?count=1
 Invoke-RestMethod "http://localhost:7071/api/maintenance-events/generate?count=100&seed=42"
 ```
 
-### Validate In Databricks
-1. Open `app/configure_sas_access.ipynb` in Databricks or VS Code notebook mode.
-2. Ensure the Databricks secret scope contains the `raw-sas-token` secret.
-3. Run the storage configuration cell.
-4. Run the Avro read and schema parse cell.
-5. Confirm JetOps maintenance events appear with fields such as `tail_number`, `component`, `fault_code`, and `maintenance_log_id`.
+For a quick local smoke test without Event Hubs, use [azure_function_eventhub/smoke_test.py](azure_function_eventhub/smoke_test.py).
 
-## ▶️ Foundry Playground Example
+### 2. Run The Gold KPI API Locally
 
-The screenshot below shows the current Azure AI Foundry playground setup using `Agent400` for a quick chat validation run inside the `fleet-maintenance-copilot` project.
+```powershell
+cd c:\LocalRepo\jetops-lakehouse-1\app
+py -m pip install -r requirements.txt
+$env:JETOPS_API_KEY = "replace-me"
+$env:JETOPS_STORAGE_ACCOUNT_KEY = "replace-me"
+py app.py
+```
 
-![Azure AI Foundry agents playground example](picture/Agent.png)
+Example requests:
+
+```powershell
+Invoke-RestMethod -Headers @{ "x-api-key" = $env:JETOPS_API_KEY } "http://localhost:8000/api/gold/health"
+Invoke-RestMethod -Headers @{ "x-api-key" = $env:JETOPS_API_KEY } "http://localhost:8000/api/gold/kpis/executive"
+```
+
+### 3. Validate In Databricks
+
+Use the notebooks in [app](app) for the medallion flow.
+
+Important auth detail:
+
+- The notebooks still support SAS-token secrets.
+- The current default is `JETOPS_STORAGE_AUTH_MODE=account_key`.
+- That path expects the Databricks secret `storage-account-key` unless you override the secret names.
+
+If you use [app/configure_sas_access.ipynb](app/configure_sas_access.ipynb), that notebook is specifically for SAS-token setup. The Bronze, Silver, and Gold notebooks default to account-key mode.
+
+### 4. Build The Gold API Container
+
+The API container build path in this repo is:
+
+```powershell
+az acr build --resource-group rg-aviator-core-prod --registry aviatoracrjetops01 --image jetops-gold-api:latest --file app/Dockerfile app
+```
+
+The container definition is in [app/Dockerfile](app/Dockerfile).
+
+## Key Configuration
+
+### Azure Function Local Settings
+
+The sample file is [azure_function_eventhub/local.settings.sample.json](azure_function_eventhub/local.settings.sample.json).
+
+Required values:
+
+- `AzureWebJobsStorage`
+- `FUNCTIONS_WORKER_RUNTIME`
+- `EVENTHUB_CONNECTION_STRING`
+- `EVENTHUB_NAME`
+
+### Gold API Environment Variables
+
+Common variables used by [app/app.py](app/app.py) and [app/gold_kpi_service.py](app/gold_kpi_service.py):
+
+- `JETOPS_API_KEY`
+- `JETOPS_STORAGE_ACCOUNT_KEY`
+- `JETOPS_STORAGE_ACCOUNT`
+- `JETOPS_RESOURCE_GROUP`
+- `JETOPS_GOLD_CONTAINER`
+- `JETOPS_GOLD_API_SNAPSHOT_ROOT`
+- `PUBLIC_BASE_URL`
+- `JETOPS_SQL_CONNECTION_STRING` for the optional legacy dashboard route
+
+## What The Project Currently Demonstrates
+
+- Event generation into Azure Event Hubs
+- Databricks Bronze, Silver, and Gold transformations
+- Gold KPI serving through a protected Flask API
+- OpenAPI-based tool wiring for Azure AI Foundry
+- A practical maintenance-copilot test path in Foundry
+
+## Current Gaps
+
+- The README does not attempt to document every Terraform resource in detail.
+- The Foundry portal currently shows `Agent400` as the working chat smoke-test path, but that is not the same thing as a fully restored versioned maintenance copilot agent.
+- The local Foundry version-management script depends on packages such as `jsonref` and `azure.ai.projects`, so it will not run in a bare Python environment without additional setup.
+
