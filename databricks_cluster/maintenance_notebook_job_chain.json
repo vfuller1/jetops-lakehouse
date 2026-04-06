@@ -1,0 +1,88 @@
+{
+  "name": "jetops-maintenance-notebook-chain",
+  "timeout_seconds": 0,
+  "max_concurrent_runs": 1,
+  "schedule": {
+    "quartz_cron_expression": "0 15 * * * ?",
+    "timezone_id": "UTC",
+    "pause_status": "PAUSED"
+  },
+  "job_clusters": [
+    {
+      "job_cluster_key": "jetops_single_node",
+      "new_cluster": {
+        "spark_version": "16.4.x-scala2.12",
+        "node_type_id": "Standard_D8s_v3",
+        "driver_node_type_id": "Standard_D8s_v3",
+        "num_workers": 0,
+        "spark_conf": {
+          "spark.master": "local[*, 4]",
+          "spark.databricks.cluster.profile": "singleNode"
+        },
+        "azure_attributes": {
+          "first_on_demand": 1,
+          "availability": "ON_DEMAND_AZURE",
+          "spot_bid_max_price": -1
+        },
+        "custom_tags": {
+          "ResourceClass": "SingleNode"
+        },
+        "enable_elastic_disk": true,
+        "data_security_mode": "NONE"
+      }
+    }
+  ],
+  "tasks": [
+    {
+      "task_key": "bronze_maintenance_events",
+      "run_if": "ALL_SUCCESS",
+      "job_cluster_key": "jetops_single_node",
+      "notebook_task": {
+        "notebook_path": "/Users/vfuller100@outlook.com/jetops-lakehouse-1/bronze_maintenance_events",
+        "source": "WORKSPACE"
+      }
+    },
+    {
+      "task_key": "silver_maintenance_events",
+      "run_if": "ALL_SUCCESS",
+      "depends_on": [
+        {
+          "task_key": "bronze_maintenance_events"
+        }
+      ],
+      "job_cluster_key": "jetops_single_node",
+      "notebook_task": {
+        "notebook_path": "/Users/vfuller100@outlook.com/jetops-lakehouse-1/silver_maintenance_events",
+        "source": "WORKSPACE"
+      }
+    },
+    {
+      "task_key": "gold_maintenance_kpis",
+      "run_if": "ALL_SUCCESS",
+      "depends_on": [
+        {
+          "task_key": "silver_maintenance_events"
+        }
+      ],
+      "job_cluster_key": "jetops_single_node",
+      "notebook_task": {
+        "notebook_path": "/Users/vfuller100@outlook.com/jetops-lakehouse-1/gold_maintenance_kpis",
+        "source": "WORKSPACE"
+      }
+    },
+    {
+      "task_key": "gold_kpi_inspection",
+      "run_if": "ALL_SUCCESS",
+      "depends_on": [
+        {
+          "task_key": "gold_maintenance_kpis"
+        }
+      ],
+      "job_cluster_key": "jetops_single_node",
+      "notebook_task": {
+        "notebook_path": "/Users/vfuller100@outlook.com/jetops-lakehouse-1/gold_kpi_inspection",
+        "source": "WORKSPACE"
+      }
+    }
+  ]
+}

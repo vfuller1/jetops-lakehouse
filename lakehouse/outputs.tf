@@ -23,9 +23,19 @@ output "herbalife_eventhub_namespace_name" {
   value       = azurerm_eventhub_namespace.herbalife_ns.name
 }
 
+output "herbalife_eventhub_name" {
+  description = "Name of the JetOps maintenance Event Hub"
+  value       = azurerm_eventhub.herbalife_hub.name
+}
+
 output "herbalife_eventhub_namespace_id" {
   description = "ID of the Herbalife Event Hub namespace"
   value       = azurerm_eventhub_namespace.herbalife_ns.id
+}
+
+output "herbalife_raw_capture_path" {
+  description = "Blob prefix where JetOps maintenance capture files land in the raw container"
+  value       = "raw/jetops-maintenance/${azurerm_eventhub_namespace.herbalife_ns.name}/${azurerm_eventhub.herbalife_hub.name}"
 }
 
 output "herbalife_databricks_workspace_name" {

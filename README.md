@@ -34,29 +34,106 @@ BI / ML / Dashboards / APIs
 
 No VMs. Cloud-native. Scalable.
 
+## 📊 JetOps Reference Diagrams
+
+### Current Ingestion Slice
+```mermaid
+flowchart LR
+   A[Azure Function App\nGenerate JetOps Maintenance Events] --> B[Azure Event Hub\njetops-maintenance-events-dev]
+   B --> C[Event Hubs Capture\nAvro batches every 5 min or 10 MB]
+   C --> D[ADLS Gen2 Raw Container\nraw/jetops-maintenance/...]
+   D --> E[Databricks Notebook\nconfigure_sas_access.ipynb]
+   E --> F[Parsed Raw Maintenance Events\nSchema validation and preview]
+   F --> G[Next Step: Bronze Delta Tables\nStreaming or scheduled ingestion job]
+
+   H[HTTP Trigger\n/api/maintenance-events/generate] --> A
+   I[local.settings.json\nEvent Hub connection settings] --> A
+   J[Databricks Secret Scope\nraw-sas-token] --> E
+```
+
+### Future Bronze To Silver To Gold Flow
+```mermaid
+flowchart LR
+   A[MRO Work Orders\nMaintenance Logs] --> D[Ingestion Layer]
+   B[Aircraft Telemetry\nEvent Hub Streams] --> D
+   C[Inspection Files\nCSV API SQL] --> D
+
+   D --> E[Bronze\nRaw Avro JSON Parquet\nImmutable landing zone]
+   E --> F[Silver\nValidated conformed maintenance data\nAircraft, component, technician, work order models]
+   F --> G[Gold\nFleet reliability, AOG trends, turnaround KPIs, compliance marts]
+
+   G --> H[Power BI\nOperations dashboards]
+   G --> I[Databricks ML\nPredictive maintenance and failure forecasting]
+   G --> J[Operational APIs\nMaintenance status and alerts]
+```
+
+### Executive Architecture View
+Note: Mermaid in README does not reliably support official Azure service icons across all renderers, so this diagram uses labeled Azure service blocks.
+
+```mermaid
+flowchart TB
+   subgraph Ops[JetOps Operational Sources]
+      A1[Maintenance Management System]
+      A2[Aircraft Telemetry and Sensor Feeds]
+      A3[Technician Inspection Updates]
+   end
+
+   subgraph Ingest[Azure Ingestion Services]
+      B1[Azure Functions\nSynthetic and API-driven event generation]
+      B2[Azure Event Hubs\nStreaming ingress and buffering]
+   end
+
+   subgraph Lake[Azure Lakehouse Platform]
+      C1[ADLS Gen2 Raw]
+      C2[Databricks Bronze]
+      C3[Databricks Silver]
+      C4[Databricks Gold]
+      C5[Azure Monitor and Log Analytics]
+   end
+
+   subgraph Consume[Analytics and Business Consumption]
+      D1[Power BI Executive Reporting]
+      D2[Operational Fleet Health Dashboards]
+      D3[Predictive Maintenance Models]
+   end
+
+   A1 --> B1
+   A2 --> B2
+   A3 --> B1
+   B1 --> B2
+   B2 --> C1
+   C1 --> C2
+   C2 --> C3
+   C3 --> C4
+   B2 --> C5
+   C4 --> D1
+   C4 --> D2
+   C4 --> D3
+```
+
 ## 2️⃣ Why We Are Building It
 ### 🎯 Business Drivers
-From the earlier Data Lake Recommendations, the organization needed:
-- Product recommendations
-- Upsell/cross-sell analytics
-- Churn prediction
-- Distributor growth visibility
-- Supply chain transparency
-- Emissions tracking
-- Real-time insights
+JetOps needs a cloud-native data platform that can unify maintenance operations, aircraft telemetry, technician updates, and inspection records in one governed environment. The platform is designed to support:
+- Fleet reliability analytics
+- Aircraft on ground reduction
+- Faster maintenance turnaround decisions
+- Predictive maintenance readiness
+- Parts demand forecasting
+- Compliance and audit visibility
+- Real-time operational insight
 - Machine intelligence enablement
 
 The old model (Data Lake only) was storage-centric. The new model (Lakehouse) is intelligence-centric.
 
 ### 🧠 Strategic Goals
 We are building this to:
-1. Increase Average Order Value (AOV)
-2. Improve retention
-3. Enable real-time personalization
-4. Reduce manual reporting
-5. Improve forecasting accuracy
-6. Support ESG and compliance reporting
-7. Enable AI-ready architecture
+1. Reduce aircraft downtime
+2. Improve maintenance schedule adherence
+3. Enable real-time fleet health visibility
+4. Reduce manual operational reporting
+5. Improve parts and labor forecasting
+6. Support maintenance compliance and audit readiness
+7. Enable AI-ready maintenance operations
 8. Standardize enterprise governance
 
 ### 🚀 Technical Motivation
@@ -71,12 +148,12 @@ Lakehouse allows:
 
 ## 3️⃣ The AI Component
 This is not just storage. We are enabling:
-- Churn prediction
-- Next-most-likely purchase
-- Distributor segmentation
-- SKU demand forecasting
-- Emissions anomaly detection
-- Executive AI Q&A
+- Predictive maintenance and component failure forecasting
+- AOG risk scoring
+- Work order prioritization
+- Parts demand forecasting
+- Inspection anomaly detection
+- Executive fleet operations Q&A
 
 The Lakehouse becomes the foundation for intelligent business decisions.
 
@@ -113,8 +190,8 @@ The Lakehouse becomes the foundation for intelligent business decisions.
 ### Phase 3 — Transformation
 1. Clean and validate in Silver
 2. Apply data quality rules
-3. Conform customer/product models
-4. Create Gold business tables
+3. Conform aircraft/component/technician/work order models
+4. Create Gold operational marts
 5. Optimize Delta partitions
 
 **Outcome:** Analytics-ready data.
@@ -130,7 +207,7 @@ The Lakehouse becomes the foundation for intelligent business decisions.
 
 ### Phase 5 — Analytics & AI
 1. Engineer features
-2. Train ML model (recommendation engine)
+2. Train ML models for maintenance and reliability
 3. Register model
 4. Batch score or stream inference
 5. Write results to Gold tables
@@ -149,81 +226,67 @@ The Lakehouse becomes the foundation for intelligent business decisions.
 We are not just building pipelines. We are building a data platform capability.
 
 ## 6️⃣ Executive Summary
-We are building a net-new Azure Lakehouse platform to unify E-Commerce and Supply Chain data into a governed, scalable architecture that supports real-time analytics and machine learning. The platform uses a Medallion Delta design, supports streaming and batch ingestion, enables AI use cases like churn prediction and next-most-likely purchase, and is deployed entirely through Infrastructure as Code to ensure repeatability and enterprise compliance.
+We are building a net-new Azure Lakehouse platform to unify JetOps maintenance data, aircraft telemetry, and inspection workflows into a governed, scalable architecture that supports real-time analytics and machine learning. The platform uses a Medallion Delta design, supports streaming and batch ingestion, enables AI use cases like predictive maintenance and AOG risk scoring, and is deployed entirely through Infrastructure as Code to ensure repeatability and enterprise compliance.
 
 ## 7️⃣ “What Is the Outcome?”
 - Faster decisions
-- Personalized distributor experiences
+- Better fleet readiness
 - Improved forecasting
 - Reduced operational risk
 - AI-ready enterprise data foundation
 
 ---
 
-# Herbalife (Enterprise Scenario)
-If you are positioning this as an evolution of the original engagement referenced in the Data Lake Recommendations:
+# JetOps (Enterprise Scenario)
+This repo is framed as a JetOps maintenance and fleet operations platform.
 
-**Company:** Herbalife Nutrition
+**Company:** JetOps
 
 **Audience:**
-- Digital Commerce Leadership
-- Supply Chain Operations
-- Sustainability / ESG Office
+- Maintenance Control Leadership
+- Fleet Operations
+- Reliability Engineering
 - IT Platform Engineering
-- Data & Analytics Organization
-
-## OPTION 2 — Generic Enterprise / Demo Portfolio Project
-If this is for:
-- Interview preparation
-- Portfolio demonstration
-- Microsoft CSA role positioning
-
-Then the safest framing is:
-**Company:** Global Direct-to-Consumer Nutrition Enterprise (Confidential Client)
-
-That gives you flexibility and avoids over-claiming.
+- Data and Analytics Organization
 
 ---
 
 ## 🎯 What Use Cases Does This Solve?
-From the Data Lake Recommendations (page 4):
-
-### 🟢 E-Commerce Use Cases
-1. Product recommendations
-2. Upsell opportunities
-3. Cross-sell analytics
-4. Churn probability modeling
-5. Downline growth tracking
-6. Order visibility over time
-7. SKU freshness / volume updates
+### 🟢 Maintenance And Fleet Operations Use Cases
+1. Aircraft maintenance log visibility in real time
+2. AOG trend tracking by tail number, component, and hangar
+3. Work order aging and turnaround analytics
+4. Technician productivity and labor utilization analysis
+5. Parts demand forecasting for critical components
+6. Inspection compliance and audit traceability
+7. Fleet reliability and repeat-failure detection
 
 These directly support:
-- Next-most-likely purchase model
-- Churn prediction
-- Distributor performance analytics
+- Predictive maintenance models
+- AOG risk scoring
+- Maintenance performance analytics
 
-### 🔵 Supply Chain Use Cases
-1. Packaging usage tracking
-2. Plastics type analysis
-3. Manufacturing plant emissions
-4. CO₂ tracking
-5. Energy usage monitoring
+### 🔵 Telemetry And Reliability Use Cases
+1. Sensor anomaly detection from aircraft telemetry
+2. Component fault trend analysis
+3. Dispatch readiness monitoring
+4. Maintenance event correlation with telemetry spikes
+5. Failure forecasting for high-value systems
 
 These support:
-- Emissions anomaly detection
-- Sustainability reporting
-- Demand forecasting
+- Reliability engineering
+- Operational planning
+- Predictive maintenance and alerting
 
 ### 🧠 What This Lakehouse Actually Solves
 | Business Challenge           | How the Lakehouse Solves It         |
 |-----------------------------|-------------------------------------|
 | Data silos                  | Unified Medallion storage           |
 | Slow reporting              | Real-time ingestion + Gold tables   |
-| Poor personalization        | ML recommendation engine            |
-| Distributor churn           | Predictive modeling                 |
-| Inventory inefficiency      | Time-series forecasting             |
+| Aircraft downtime           | Maintenance event visibility + predictive models |
+| Parts shortages             | Time-series demand forecasting      |
 | Compliance risk             | Governance + lineage                |
-| Manual sustainability tracking | Telemetry analytics              |
+| Reactive maintenance        | Reliability analytics + anomaly detection |
 
 ### 🏗 What It Is NOT
 It is not:
@@ -234,3 +297,44 @@ It is not:
 
 It is:
 An enterprise data platform capability.
+
+---
+
+## ▶️ Local Validation Runbook
+
+### Run The JetOps Function App
+1. Install Python 3.12 and Azure Functions Core Tools on Windows.
+2. Open a new terminal after install so `py` and `func` are on PATH.
+3. Change to the Azure Functions project folder.
+4. Copy `local.settings.sample.json` to `local.settings.json` and set `EVENTHUB_CONNECTION_STRING` and `EVENTHUB_NAME`.
+5. Install Python dependencies.
+6. Start the Functions host.
+
+```powershell
+cd c:\LocalRepo\jetops-lakehouse-1\azure_function_eventhub
+Copy-Item local.settings.sample.json local.settings.json
+py -m pip install -r requirements.txt
+func start
+```
+
+### Send Fake JetOps Maintenance Events
+The HTTP route sends 25 records by default. You can override the volume with `count` and make the data repeatable with `seed`.
+
+```powershell
+Invoke-RestMethod "http://localhost:7071/api/maintenance-events/generate"
+Invoke-RestMethod "http://localhost:7071/api/maintenance-events/generate?count=100"
+Invoke-RestMethod "http://localhost:7071/api/maintenance-events/generate?count=100&seed=42"
+```
+
+### Validate In Databricks
+1. Open `app/configure_sas_access.ipynb` in Databricks or VS Code notebook mode.
+2. Ensure the Databricks secret scope contains the `raw-sas-token` secret.
+3. Run the storage configuration cell.
+4. Run the Avro read and schema parse cell.
+5. Confirm JetOps maintenance events appear with fields such as `tail_number`, `component`, `fault_code`, and `maintenance_log_id`.
+
+## ▶️ Foundry Playground Example
+
+The screenshot below shows the current Azure AI Foundry playground setup using `Agent400` for a quick chat validation run inside the `fleet-maintenance-copilot` project.
+
+![Azure AI Foundry agents playground example](picture/Agent.png)

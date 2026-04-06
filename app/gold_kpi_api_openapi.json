@@ -1,0 +1,149 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "JetOps Gold KPI API",
+    "version": "1.0.0",
+    "description": "Operational API over Gold maintenance marts for Foundry copilots and downstream consumers."
+  },
+  "components": {
+    "securitySchemes": {
+      "apiKeyHeader": {
+        "type": "apiKey",
+        "name": "x-api-key",
+        "in": "header"
+      }
+    }
+  },
+  "security": [
+    {
+      "apiKeyHeader": []
+    }
+  ],
+  "servers": [
+    {
+      "url": "http://localhost:5000"
+    }
+  ],
+  "paths": {
+    "/api/gold/health": {
+      "get": {
+        "operationId": "getGoldHealth",
+        "summary": "Return Gold dataset health and row counts",
+        "responses": {
+          "200": {
+            "description": "Gold dataset health payload"
+          }
+        }
+      }
+    },
+    "/api/gold/metadata": {
+      "get": {
+        "operationId": "getGoldMetadata",
+        "summary": "Return dataset metadata for the Gold API",
+        "responses": {
+          "200": {
+            "description": "Gold dataset metadata"
+          }
+        }
+      }
+    },
+    "/api/gold/kpis/executive": {
+      "get": {
+        "operationId": "getExecutiveKpis",
+        "summary": "Return executive fleet KPI totals",
+        "responses": {
+          "200": {
+            "description": "Executive KPI payload"
+          }
+        }
+      }
+    },
+    "/api/gold/kpis/daily-operations": {
+      "get": {
+        "operationId": "getDailyOperationsKpis",
+        "summary": "Return daily operations KPI trend rows",
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "description": "How many trailing days to include",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 14,
+              "minimum": 1,
+              "maximum": 90
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Daily KPI trend rows"
+          }
+        }
+      }
+    },
+    "/api/gold/kpis/component-reliability": {
+      "get": {
+        "operationId": "getComponentReliabilityKpis",
+        "summary": "Return top component reliability pressure signals",
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "description": "How many trailing days to include",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 7,
+              "minimum": 1,
+              "maximum": 90
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum number of components to return",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "minimum": 1,
+              "maximum": 200
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Component reliability rows"
+          }
+        }
+      }
+    },
+    "/api/gold/kpis/fleet-watchlist": {
+      "get": {
+        "operationId": "getFleetWatchlist",
+        "summary": "Return aircraft that need immediate operational attention",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum number of watchlist rows to return",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "minimum": 1,
+              "maximum": 500
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Fleet watchlist rows"
+          }
+        }
+      }
+    }
+  }
+}

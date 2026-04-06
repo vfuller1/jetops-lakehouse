@@ -1,0 +1,48 @@
+{
+  "agent_name": "fleet-maintenance-copilot-agent",
+  "connection_name": "jetops-gold-api-key",
+  "model_deployment": "gpt-4-1-mini",
+  "baseline_version": "1",
+  "comparison_version": "2",
+  "queries": [
+    {
+      "query": "How many aircraft currently have critical issues? Use the maintenance KPI API.",
+      "version_1": {
+        "version": "1",
+        "status": "error",
+        "answer": "Error code: 400 - {'error': {'message': '{\\n  \"error\": \"Validation Error\",\\n  \"message\": \"(\\'HTTP error 401: Unauthorized\\', \\'http_client_error\\', {\\'curl\\': \\\\\"curl -X GET \\'https://jetops-gold-api.blackpebble-8c1a9729.eastus2.azurecontainerapps.io/api/gold/kpis/executive?REDACTED\\' -H \\'Content-Type: REDACTED\\' -H \\'Accept: REDACTED\\'\\\\\"})\",\\n  \"func_call_name\": \"getExecutiveKpis\",\\n  \"spec_id\": \"jetops_gold_kpis\",\\n  \"type\": \"ValidationError\",\\n  \"debug_info\": {\\n    \"error_type\": \"validation_error\",\\n    \"tool_name\": \"python_openapi_tool_jetops_gold_kpis\",\\n    \"curl_command\": \"curl -X GET \\'https://jetops-gold-api.blackpebble-8c1a9729.eastus2.azurecontainerapps.io/api/gold/kpis/executive?REDACTED\\' -H \\'Content-Type: REDACTED\\' -H \\'Accept: REDACTED\\'\"\\n  }\\n}', 'type': 'invalid_request_error', 'param': None, 'code': 'tool_user_error'}}"
+      },
+      "version_2": {
+        "version": "2",
+        "status": "error",
+        "answer": "Error code: 429 - {'error': {'message': 'Too Many Requests', 'type': 'too_many_requests', 'param': None, 'code': 'too_many_requests'}}"
+      }
+    },
+    {
+      "query": "Which aircraft should maintenance control review first this morning? Use the maintenance KPI API and explain the triage order.",
+      "version_1": {
+        "version": "1",
+        "status": "error",
+        "answer": "Error code: 400 - {'error': {'message': '{\\n  \"error\": \"Validation Error\",\\n  \"message\": \"(\\'HTTP error 401: Unauthorized\\', \\'http_client_error\\', {\\'curl\\': \\\\\"curl -X GET \\'https://jetops-gold-api.blackpebble-8c1a9729.eastus2.azurecontainerapps.io/api/gold/kpis/fleet-watchlist?REDACTED\\' -H \\'Content-Type: REDACTED\\' -H \\'Accept: REDACTED\\'\\\\\"})\",\\n  \"func_call_name\": \"getFleetWatchlist\",\\n  \"spec_id\": \"jetops_gold_kpis\",\\n  \"type\": \"ValidationError\",\\n  \"debug_info\": {\\n    \"error_type\": \"validation_error\",\\n    \"tool_name\": \"python_openapi_tool_jetops_gold_kpis\",\\n    \"curl_command\": \"curl -X GET \\'https://jetops-gold-api.blackpebble-8c1a9729.eastus2.azurecontainerapps.io/api/gold/kpis/fleet-watchlist?REDACTED\\' -H \\'Content-Type: REDACTED\\' -H \\'Accept: REDACTED\\'\"\\n  }\\n}', 'type': 'invalid_request_error', 'param': None, 'code': 'tool_user_error'}}"
+      },
+      "version_2": {
+        "version": "2",
+        "status": "error",
+        "answer": "Error code: 429 - {'error': {'message': 'Too Many Requests', 'type': 'too_many_requests', 'param': None, 'code': 'too_many_requests'}}"
+      }
+    },
+    {
+      "query": "Which components had the highest unscheduled maintenance pressure over the last 7 days? Use the maintenance KPI API and cite the lookback window.",
+      "version_1": {
+        "version": "1",
+        "status": "error",
+        "answer": "Error code: 400 - {'error': {'message': '{\\n  \"error\": \"Validation Error\",\\n  \"message\": \"(\\'HTTP error 401: Unauthorized\\', \\'http_client_error\\', {\\'curl\\': \\\\\"curl -X GET \\'https://jetops-gold-api.blackpebble-8c1a9729.eastus2.azurecontainerapps.io/api/gold/kpis/component-reliability?REDACTED\\' -H \\'Content-Type: REDACTED\\' -H \\'Accept: REDACTED\\'\\\\\"})\",\\n  \"func_call_name\": \"getComponentReliabilityKpis\",\\n  \"spec_id\": \"jetops_gold_kpis\",\\n  \"type\": \"ValidationError\",\\n  \"debug_info\": {\\n    \"error_type\": \"validation_error\",\\n    \"tool_name\": \"python_openapi_tool_jetops_gold_kpis\",\\n    \"curl_command\": \"curl -X GET \\'https://jetops-gold-api.blackpebble-8c1a9729.eastus2.azurecontainerapps.io/api/gold/kpis/component-reliability?REDACTED\\' -H \\'Content-Type: REDACTED\\' -H \\'Accept: REDACTED\\'\"\\n  }\\n}', 'type': 'invalid_request_error', 'param': None, 'code': 'tool_user_error'}}"
+      },
+      "version_2": {
+        "version": "2",
+        "status": "error",
+        "answer": "Error code: 429 - {'error': {'message': 'Too Many Requests', 'type': 'too_many_requests', 'param': None, 'code': 'too_many_requests'}}"
+      }
+    }
+  ]
+}

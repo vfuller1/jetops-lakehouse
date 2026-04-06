@@ -33,6 +33,11 @@ variable "herbalife_eventhub_namespace_name" {
   default     = "evh-herbalife-dev"
 }
 
+variable "herbalife_eventhub_name" {
+  description = "Event Hub name."
+  default     = "jetops-maintenance-events-dev"
+}
+
 variable "enable_herbalife_storage_role_assignment" {
   description = "Whether Terraform should create the optional Storage Blob Data Contributor assignment for the fixed principal."
   type        = bool
