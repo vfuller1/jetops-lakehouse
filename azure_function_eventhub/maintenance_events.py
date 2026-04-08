@@ -68,6 +68,20 @@ COMPONENTS = [
 STATUSES = ["Open", "In-Work", "Awaiting Parts", "AOG", "Return To Service Review"]
 SEVERITIES = ["Low", "Medium", "High", "Critical"]
 TECHNICIANS = ["TECH-014", "TECH-021", "TECH-033", "TECH-041", "TECH-058"]
+PRIORITIES = ["P1", "P2", "P3", "P4"]
+OPERATORS = ["JetOps Charter", "JetOps Cargo", "JetOps Executive", "JetOps Medical"]
+ROUTE_SEGMENTS = ["Northeast Shuttle", "Southwest Loop", "Transcon Priority", "Caribbean Support"]
+MAINTENANCE_STATIONS = ["TEB North Bay", "DAL Line Base", "VNY Service Dock", "HPN Heavy Check"]
+MAINTENANCE_CATEGORIES = ["Airframe", "Powerplant", "Cabin", "Dispatch", "Inspection"]
+PART_ORDER_STATUSES = ["Not Required", "On Hand", "Ordered", "Expedite Requested"]
+REPORTERS = ["Pilot", "Dispatch", "Maintenance Control", "Line Technician", "Sensor Alert"]
+SOURCE_SYSTEMS = ["mx-control", "line-ops", "foqa-stream", "eicas-bus"]
+RECOMMENDED_ACTIONS = [
+    "Inspect and clear for service.",
+    "Replace affected line-replaceable unit.",
+    "Escalate to heavy maintenance planning.",
+    "Monitor on next arrival and re-test.",
+]
 
 
 def _weighted_choice(rng: random.Random, options: list[str], weights: list[int]) -> str:
@@ -87,9 +101,17 @@ def build_maintenance_event(index: int, rng: random.Random, base_time: datetime)
     component = rng.choice(COMPONENTS)
     status = _weighted_choice(rng, STATUSES, [30, 35, 10, 15, 10])
     severity = _weighted_choice(rng, SEVERITIES, [35, 35, 20, 10])
+    priority = _weighted_choice(rng, PRIORITIES, [15, 35, 35, 15])
     event_time = base_time - timedelta(minutes=(index * 3) + rng.randint(0, 12), seconds=rng.randint(0, 59))
     inspection_date = (event_time - timedelta(hours=rng.randint(2, 36))).date().isoformat()
     maintenance_log_id = 500000 + index
+    requires_parts = 1 if rng.random() < 0.58 else 0
+    repeat_issue_flag = 1 if rng.random() < 0.22 else 0
+    dispatch_impact = _weighted_choice(rng, ["None", "Minor Delay", "Swap Required", "Grounded"], [35, 35, 20, 10])
+    estimated_downtime_hours = round(rng.uniform(1.5, 48.0), 1)
+    labor_hours_estimate = round(rng.uniform(1.0, 18.0), 1)
+    part_order_status = "Not Required" if not requires_parts else _weighted_choice(rng, PART_ORDER_STATUSES[1:], [45, 35, 20])
+    parts_eta_hours = 0.0 if part_order_status in {"Not Required", "On Hand"} else round(rng.uniform(2.0, 36.0), 1)
 
     return {
         "event_type": "maintenance_log_created",
@@ -104,11 +126,26 @@ def build_maintenance_event(index: int, rng: random.Random, base_time: datetime)
         "component": component["component"],
         "fault_code": rng.choice(component["fault_codes"]),
         "severity": severity,
+        "priority": priority,
         "part_hours": round(rng.uniform(450.0, 5400.0), 1),
+        "estimated_downtime_hours": estimated_downtime_hours,
+        "labor_hours_estimate": labor_hours_estimate,
         "inspection_date": inspection_date,
         "technician_id": rng.choice(TECHNICIANS),
         "hangar": aircraft["hangar"],
         "airport_code": aircraft["airport_code"],
+        "operator_name": rng.choice(OPERATORS),
+        "route_segment": rng.choice(ROUTE_SEGMENTS),
+        "maintenance_station": rng.choice(MAINTENANCE_STATIONS),
+        "maintenance_category": rng.choice(MAINTENANCE_CATEGORIES),
+        "dispatch_impact": dispatch_impact,
+        "requires_parts": requires_parts,
+        "part_order_status": part_order_status,
+        "parts_eta_hours": parts_eta_hours,
+        "repeat_issue_flag": repeat_issue_flag,
+        "reported_by": rng.choice(REPORTERS),
+        "event_source_system": rng.choice(SOURCE_SYSTEMS),
+        "recommended_action": rng.choice(RECOMMENDED_ACTIONS),
         "details": rng.choice(component["details"]),
         "ingestion_source": "azure-function",
         "schema_version": "1.0",

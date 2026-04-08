@@ -36,7 +36,7 @@ flowchart LR
 
 ### Event Generator
 
-The Azure Functions app under [azure_function_eventhub/__init__.py](azure_function_eventhub/__init__.py) and [azure_function_eventhub/function_app.py](azure_function_eventhub/function_app.py) exposes an HTTP-triggered endpoint that sends synthetic maintenance events to Event Hubs.
+The Azure Functions app in [azure_function_eventhub/function_app.py](azure_function_eventhub/function_app.py) exposes an HTTP-triggered endpoint that sends synthetic maintenance events to Event Hubs.
 
 Key behavior:
 
@@ -59,6 +59,7 @@ Current flow:
 4. Gold also writes JSON snapshot outputs for the serving API.
 
 The Databricks job chain definition is in [databricks_cluster/maintenance_notebook_job_chain.json](databricks_cluster/maintenance_notebook_job_chain.json).
+With that schedule enabled, new generated events automatically move from Event Hubs capture to Bronze, Silver, Gold, and finally into the Gold API snapshot folders that [app/gold_kpi_service.py](app/gold_kpi_service.py) serves.
 
 ### Gold KPI API
 
@@ -93,11 +94,15 @@ The version-management script is [scripts/manage_foundry_agent_versions.py](scri
 - create a new agent version
 - compare the latest versions on a fixed question set
 
+The script expects additional Python packages beyond the Flask API requirements, including `azure-ai-projects`, `azure-identity`, `jsonref`, and `requests`.
+
 The stored comparison artifact is [foundry/agent_version_comparison.json](foundry/agent_version_comparison.json).
 
 #### Foundry Playground Example
 
-The screenshot below shows the current Azure AI Foundry playground setup using `Agent400` for a quick chat validation run inside the `fleet-maintenance-copilot` project.
+The screenshot below is an example Azure AI Foundry playground view inside the `fleet-maintenance-copilot` project.
+
+For live KPI validation, use the repo-managed agent `fleet-maintenance-copilot-agent`. Older ad hoc playground agents such as `Agent400` are not authoritative and can be missing the protected Gold API tool wiring.
 
 ![Azure AI Foundry agents playground example](picture/Agent.png)
 
@@ -118,18 +123,21 @@ The screenshot below shows the current Azure AI Foundry playground setup using `
 |   |-- function_app.py
 |   |-- maintenance_events.py
 |   |-- local.settings.sample.json
+|   |-- requirements.txt
 |   `-- smoke_test.py
 |-- databricks_cluster/
 |   `-- maintenance_notebook_job_chain.json
 |-- foundry/
 |   |-- fleet_maintenance_copilot_setup.md
 |   `-- agent_version_comparison.json
+|-- scripts/
+|   |-- bulk_trigger_load.py
+|   |-- manage_foundry_agent_versions.py
+|   `-- stop_bulk_trigger_load.py
 |-- lakehouse/
 |   |-- herbalife_eventhub.tf
 |   |-- outputs.tf
 |   `-- variables.tf
-`-- scripts/
-    `-- manage_foundry_agent_versions.py
 ```
 
 ## Prerequisites
@@ -158,6 +166,26 @@ Invoke-RestMethod "http://localhost:7071/api/maintenance-events/generate"
 Invoke-RestMethod "http://localhost:7071/api/maintenance-events/generate?count=100"
 Invoke-RestMethod "http://localhost:7071/api/maintenance-events/generate?count=100&seed=42"
 ```
+
+For larger backfills or repeatable load generation, use the bulk trigger script from the repo root:
+
+```powershell
+py scripts/bulk_trigger_load.py --iterations 10 --count-per-request 500 --delay-seconds 2
+```
+
+To keep sending data until you explicitly stop it:
+
+```powershell
+py scripts/bulk_trigger_load.py --continuous --count-per-request 500 --delay-seconds 5
+```
+
+To stop a running load loop from another terminal:
+
+```powershell
+py scripts/stop_bulk_trigger_load.py
+```
+
+Add `--force` to the stop command if you need the tracked loader process terminated immediately.
 
 For a quick local smoke test without Event Hubs, use [azure_function_eventhub/smoke_test.py](azure_function_eventhub/smoke_test.py).
 
@@ -237,6 +265,6 @@ Common variables used by [app/app.py](app/app.py) and [app/gold_kpi_service.py](
 ## Current Gaps
 
 - The README does not attempt to document every Terraform resource in detail.
-- The Foundry portal currently shows `Agent400` as the working chat smoke-test path, but that is not the same thing as a fully restored versioned maintenance copilot agent.
+- Ad hoc playground agents can drift from the repo-managed `fleet-maintenance-copilot-agent`; recreate the agent from [scripts/manage_foundry_agent_versions.py](scripts/manage_foundry_agent_versions.py) before using the playground as a live KPI validation path.
 - The local Foundry version-management script depends on packages such as `jsonref` and `azure.ai.projects`, so it will not run in a bare Python environment without additional setup.
 

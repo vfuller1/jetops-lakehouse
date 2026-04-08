@@ -202,13 +202,42 @@ def recent_daily_operations(days=14):
                 'open_events': 0,
                 'aog_events': 0,
                 'critical_events': 0,
+                'parts_required_events': 0,
+                'repeat_issue_events': 0,
+                'avg_estimated_downtime_hours': 0.0,
+                'estimated_downtime_samples': 0,
+                'avg_labor_hours_estimate': 0.0,
+                'labor_hours_samples': 0,
             },
         )
         bucket['total_events'] += _safe_int(record.get('total_events'))
         bucket['open_events'] += _safe_int(record.get('open_events'))
         bucket['aog_events'] += _safe_int(record.get('aog_events'))
         bucket['critical_events'] += _safe_int(record.get('critical_events'))
-    return sorted(grouped.values(), key=lambda item: item['event_date'], reverse=True)
+        bucket['parts_required_events'] += _safe_int(record.get('parts_required_events'))
+        bucket['repeat_issue_events'] += _safe_int(record.get('repeat_issue_events'))
+        if record.get('avg_estimated_downtime_hours') is not None:
+            bucket['avg_estimated_downtime_hours'] += float(record['avg_estimated_downtime_hours'])
+            bucket['estimated_downtime_samples'] += 1
+        if record.get('avg_labor_hours_estimate') is not None:
+            bucket['avg_labor_hours_estimate'] += float(record['avg_labor_hours_estimate'])
+            bucket['labor_hours_samples'] += 1
+
+    results = []
+    for bucket in grouped.values():
+        downtime_samples = bucket.pop('estimated_downtime_samples')
+        labor_samples = bucket.pop('labor_hours_samples')
+        bucket['avg_estimated_downtime_hours'] = round(
+            bucket['avg_estimated_downtime_hours'] / downtime_samples,
+            2,
+        ) if downtime_samples else None
+        bucket['avg_labor_hours_estimate'] = round(
+            bucket['avg_labor_hours_estimate'] / labor_samples,
+            2,
+        ) if labor_samples else None
+        results.append(bucket)
+
+    return sorted(results, key=lambda item: item['event_date'], reverse=True)
 
 
 def component_reliability_kpis(days=7, limit=20):
@@ -227,25 +256,49 @@ def component_reliability_kpis(days=7, limit=20):
                 'aog_events_lookback': 0,
                 'critical_events_lookback': 0,
                 'unscheduled_events_lookback': 0,
+                'parts_required_events_lookback': 0,
+                'repeat_issue_events_lookback': 0,
                 'avg_inspection_age_hours': 0.0,
                 'inspection_age_samples': 0,
+                'avg_estimated_downtime_hours': 0.0,
+                'estimated_downtime_samples': 0,
+                'avg_labor_hours_estimate': 0.0,
+                'labor_hours_samples': 0,
             },
         )
         bucket['total_events_lookback'] += _safe_int(record.get('total_events'))
         bucket['aog_events_lookback'] += _safe_int(record.get('aog_events'))
         bucket['critical_events_lookback'] += _safe_int(record.get('critical_events'))
         bucket['unscheduled_events_lookback'] += _safe_int(record.get('unscheduled_events'))
+        bucket['parts_required_events_lookback'] += _safe_int(record.get('parts_required_events'))
+        bucket['repeat_issue_events_lookback'] += _safe_int(record.get('repeat_issue_events'))
         if record.get('avg_inspection_age_hours') is not None:
             bucket['avg_inspection_age_hours'] += float(record['avg_inspection_age_hours'])
             bucket['inspection_age_samples'] += 1
+        if record.get('avg_estimated_downtime_hours') is not None:
+            bucket['avg_estimated_downtime_hours'] += float(record['avg_estimated_downtime_hours'])
+            bucket['estimated_downtime_samples'] += 1
+        if record.get('avg_labor_hours_estimate') is not None:
+            bucket['avg_labor_hours_estimate'] += float(record['avg_labor_hours_estimate'])
+            bucket['labor_hours_samples'] += 1
 
     results = []
     for bucket in grouped.values():
         inspection_samples = bucket.pop('inspection_age_samples')
+        downtime_samples = bucket.pop('estimated_downtime_samples')
+        labor_samples = bucket.pop('labor_hours_samples')
         bucket['avg_inspection_age_hours'] = round(
             bucket['avg_inspection_age_hours'] / inspection_samples,
             2,
         ) if inspection_samples else None
+        bucket['avg_estimated_downtime_hours'] = round(
+            bucket['avg_estimated_downtime_hours'] / downtime_samples,
+            2,
+        ) if downtime_samples else None
+        bucket['avg_labor_hours_estimate'] = round(
+            bucket['avg_labor_hours_estimate'] / labor_samples,
+            2,
+        ) if labor_samples else None
         results.append(bucket)
 
     return sorted(
