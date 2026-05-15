@@ -39,3 +39,5 @@ terraform.rc
 # Python cache files
 __pycache__/
 *.pyc
+
+scripts/smoke_test_adls_foundry.py
