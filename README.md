@@ -219,23 +219,7 @@ Important auth detail:
 
 If you use [app/configure_sas_access.ipynb](app/configure_sas_access.ipynb), that notebook is specifically for SAS-token setup. The Bronze, Silver, and Gold notebooks default to account-key mode.
 
-### 4. End-to-End Smoke Test
-
-Validates all three layers — ADLS Gen2 gold snapshots, the Gold KPI API, and the Azure AI Foundry agent — in a single run:
-
-```powershell
-$env:PATH = "C:\Users\vfull\AppData\Local\Programs\Python\Python312\;" + "C:\Users\vfull\AppData\Local\Programs\Python\Python312\Scripts\;" + $env:PATH
-$env:JETOPS_API_KEY = "<your-api-key>"
-python scripts/smoke_test_adls_foundry.py
-```
-
-Required packages: `azure-storage-file-datalake`, `azure-ai-projects`, `azure-ai-agents`, `azure-identity`, `requests`, `jsonref`.
-
-The script uses `AzureCliCredential` — run `az login` before executing.
-
-Expected output: 18 checks, all passing. Layer 3 confirms the `fleet-maintenance-copilot-agent` exists and returns a grounded answer from the Gold KPI API.
-
-### 5. Build The Gold API Container
+### 4. Build The Gold API Container
 
 The API container build path in this repo is:
 
