@@ -133,6 +133,7 @@ For live KPI validation, use the repo-managed agent `fleet-maintenance-copilot-a
 |-- scripts/
 |   |-- bulk_trigger_load.py
 |   |-- manage_foundry_agent_versions.py
+|   |-- smoke_test_adls_foundry.py
 |   `-- stop_bulk_trigger_load.py
 |-- lakehouse/
 |   |-- herbalife_eventhub.tf
@@ -218,7 +219,23 @@ Important auth detail:
 
 If you use [app/configure_sas_access.ipynb](app/configure_sas_access.ipynb), that notebook is specifically for SAS-token setup. The Bronze, Silver, and Gold notebooks default to account-key mode.
 
-### 4. Build The Gold API Container
+### 4. End-to-End Smoke Test
+
+Validates all three layers — ADLS Gen2 gold snapshots, the Gold KPI API, and the Azure AI Foundry agent — in a single run:
+
+```powershell
+$env:PATH = "C:\Users\vfull\AppData\Local\Programs\Python\Python312\;" + "C:\Users\vfull\AppData\Local\Programs\Python\Python312\Scripts\;" + $env:PATH
+$env:JETOPS_API_KEY = "<your-api-key>"
+python scripts/smoke_test_adls_foundry.py
+```
+
+Required packages: `azure-storage-file-datalake`, `azure-ai-projects`, `azure-ai-agents`, `azure-identity`, `requests`, `jsonref`.
+
+The script uses `AzureCliCredential` — run `az login` before executing.
+
+Expected output: 18 checks, all passing. Layer 3 confirms the `fleet-maintenance-copilot-agent` exists and returns a grounded answer from the Gold KPI API.
+
+### 5. Build The Gold API Container
 
 The API container build path in this repo is:
 
@@ -265,6 +282,7 @@ Common variables used by [app/app.py](app/app.py) and [app/gold_kpi_service.py](
 ## Current Gaps
 
 - The README does not attempt to document every Terraform resource in detail.
-- Ad hoc playground agents can drift from the repo-managed `fleet-maintenance-copilot-agent`; recreate the agent from [scripts/manage_foundry_agent_versions.py](scripts/manage_foundry_agent_versions.py) before using the playground as a live KPI validation path.
-- The local Foundry version-management script depends on packages such as `jsonref` and `azure.ai.projects`, so it will not run in a bare Python environment without additional setup.
+- Ad hoc playground agents (e.g. `Agent400`) can drift from the repo-managed `fleet-maintenance-copilot-agent`. If the named agent is missing, recreate it by running the inline creation block documented in [foundry/fleet_maintenance_copilot_setup.md](foundry/fleet_maintenance_copilot_setup.md). The `manage_foundry_agent_versions.py` script targets the `azure-ai-projects` 2.x SDK API and will not run against the 1.x SDK installed by `azure-cli`.
+- No embedding or vector search layer is wired in. The Foundry agent is tool-grounded against the Gold KPI API only. RAG over maintenance history (Azure AI Search + `text-embedding-3-small`) is a planned next phase.
+- Terraform variable defaults in `variable.tf` contain placeholder passwords; these should be removed and sourced from Azure Key Vault in a production deployment.
 
