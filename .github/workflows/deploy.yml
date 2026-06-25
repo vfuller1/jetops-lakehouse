@@ -29,8 +29,8 @@ jobs:
         state=$(az aks show --resource-group rg-aviator-core-prod --name aks-aviator-core --query powerState.code -o tsv 2>/dev/null || true)
         if [ -z "$state" ]; then
           echo "AKS cluster not found or power state unavailable; continuing"
-        elif [ "$state" = "Stopped" ]; then
-          echo "AKS cluster is stopped. Starting it before Terraform apply."
+        elif [ "$state" != "Running" ]; then
+          echo "AKS cluster power state is $state. Starting it before Terraform apply."
           az aks start --resource-group rg-aviator-core-prod --name aks-aviator-core
         else
           echo "AKS power state: $state"
