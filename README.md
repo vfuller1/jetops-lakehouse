@@ -14,17 +14,7 @@ This repo is centered on JetOps maintenance events and the path from event gener
 
 ## Architecture
 
-```mermaid
-flowchart LR
-   A[Azure Function HTTP Trigger\nmaintenance-events/generate] --> B[Azure Event Hubs\njetops-maintenance-events-dev]
-   B --> C[Event Hubs Capture\nAvro in raw container]
-   C --> D[Databricks Bronze Notebook]
-   D --> E[Databricks Silver Notebook]
-   E --> F[Databricks Gold Notebook]
-   F --> G[Gold KPI JSON Snapshots\nin ADLS Gen2 gold container]
-   G --> H[Flask Gold KPI API\napp/app.py]
-   H --> I[Azure AI Foundry\nmaintenance copilot]
-```
+![Maintenance Events Data Pipeline & Copilot Architecture](docs/architecture.png)
 
 ## Main Components
 
@@ -98,6 +88,8 @@ The script expects additional Python packages beyond the Flask API requirements,
 
 The stored comparison artifact is [foundry/agent_version_comparison.json](foundry/agent_version_comparison.json).
 
+For ad hoc or scripted Q&A against the deployed agent, use [scripts/ask_copilot.py](scripts/ask_copilot.py) (interactive console) or [scripts/demo_questions.py](scripts/demo_questions.py) (runs a fixed set of demo questions). Both require `az login` against the target tenant/subscription and the `azure-ai-projects` / `azure-ai-agents` / `azure-identity` packages.
+
 #### Foundry Playground Example
 
 The screenshot below is an example Azure AI Foundry playground view inside the `fleet-maintenance-copilot` project.
@@ -113,11 +105,14 @@ For live KPI validation, use the repo-managed agent `fleet-maintenance-copilot-a
 |-- app/
 |   |-- app.py
 |   |-- gold_kpi_service.py
+|   |-- gold_kpi_api_openapi.json
 |   |-- bronze_maintenance_events.ipynb
 |   |-- silver_maintenance_events.ipynb
 |   |-- gold_maintenance_kpis.ipynb
 |   |-- gold_kpi_inspection.ipynb
-|   `-- configure_sas_access.ipynb
+|   |-- configure_sas_access.ipynb
+|   |-- Dockerfile
+|   `-- requirements.txt
 |-- azure_function_eventhub/
 |   |-- __init__.py
 |   |-- function_app.py
@@ -126,20 +121,37 @@ For live KPI validation, use the repo-managed agent `fleet-maintenance-copilot-a
 |   |-- requirements.txt
 |   `-- smoke_test.py
 |-- databricks_cluster/
+|   |-- main.tf
+|   |-- variables.tf
 |   `-- maintenance_notebook_job_chain.json
 |-- foundry/
 |   |-- fleet_maintenance_copilot_setup.md
 |   `-- agent_version_comparison.json
 |-- scripts/
+|   |-- ask_copilot.py
+|   |-- demo_questions.py
+|   |-- demo_start.ps1
 |   |-- bulk_trigger_load.py
 |   |-- manage_foundry_agent_versions.py
 |   |-- smoke_test_adls_foundry.py
 |   `-- stop_bulk_trigger_load.py
 |-- lakehouse/
+|   |-- herbalife_databricks_workspace.tf
 |   |-- herbalife_eventhub.tf
+|   |-- herbalife_monitor.tf
+|   |-- herbalife_network.tf
+|   |-- herbalife_storage.tf
+|   |-- herbalife_stream_analytics.tf
+|   |-- providers.tf
 |   |-- outputs.tf
 |   `-- variables.tf
+|-- docs/
+|   `-- architecture.png
+`-- picture/
+    `-- Agent.png
 ```
+
+Root-level Terraform files (`aks.tf`, `networking.tf`, `database_SQL.tf`, `registry-ACR.tf`, `variable.tf`, etc.) provision the broader Aviator Core platform that the JetOps lakehouse runs on; they are out of scope for this README's pipeline walkthrough.
 
 ## Prerequisites
 
@@ -154,7 +166,7 @@ For live KPI validation, use the repo-managed agent `fleet-maintenance-copilot-a
 ### 1. Run The Azure Function Locally
 
 ```powershell
-cd c:\LocalRepo\jetops-lakehouse-1\azure_function_eventhub
+cd azure_function_eventhub
 Copy-Item local.settings.sample.json local.settings.json
 py -m pip install -r requirements.txt
 func start
@@ -193,7 +205,7 @@ For a quick local smoke test without Event Hubs, use [azure_function_eventhub/sm
 ### 2. Run The Gold KPI API Locally
 
 ```powershell
-cd c:\LocalRepo\jetops-lakehouse-1\app
+cd app
 py -m pip install -r requirements.txt
 $env:JETOPS_API_KEY = "replace-me"
 $env:JETOPS_STORAGE_ACCOUNT_KEY = "replace-me"
@@ -268,5 +280,5 @@ Common variables used by [app/app.py](app/app.py) and [app/gold_kpi_service.py](
 - The README does not attempt to document every Terraform resource in detail.
 - Ad hoc playground agents (e.g. `Agent400`) can drift from the repo-managed `fleet-maintenance-copilot-agent`. If the named agent is missing, recreate it by running the inline creation block documented in [foundry/fleet_maintenance_copilot_setup.md](foundry/fleet_maintenance_copilot_setup.md). The `manage_foundry_agent_versions.py` script targets the `azure-ai-projects` 2.x SDK API and will not run against the 1.x SDK installed by `azure-cli`.
 - No embedding or vector search layer is wired in. The Foundry agent is tool-grounded against the Gold KPI API only. RAG over maintenance history (Azure AI Search + `text-embedding-3-small`) is a planned next phase.
-- Terraform variable defaults in `variable.tf` contain placeholder passwords; these should be removed and sourced from Azure Key Vault in a production deployment.
+- `scripts/demo_start.ps1` is untracked but currently hardcodes a live `JETOPS_API_KEY` value; rotate that key and have the script read it from the environment or a local secrets file before it is ever committed.
 

@@ -10,7 +10,6 @@ variable "rycrawl_admin_password" {
   description = "Admin password for the Rycrawl Windows Server VM"
   type        = string
   sensitive   = true
-  default     = "Jesusch!1"
 }
 variable "resource_group_name" {
   description = "The name of the resource group for Aviator Core"
@@ -53,7 +52,6 @@ variable "sql_admin_password" {
   description = "The password for the SQL Server admin"
   type        = string
   sensitive   = true
-  default     = "ChangeMe12345!" 
 }
 
 # Herbalife Lakehouse Dev Environment Variables
