@@ -7,6 +7,9 @@ import jsonref
 import requests
 from azure.ai.projects import AIProjectClient
 from azure.ai.projects.models import (
+    AISearchIndexResource,
+    AzureAISearchTool,
+    AzureAISearchToolResource,
     OpenApiFunctionDefinition,
     OpenApiProjectConnectionAuthDetails,
     OpenApiProjectConnectionSecurityScheme,
@@ -25,6 +28,8 @@ DEFAULT_CONNECTION_NAME = 'jetops-gold-api-key'
 DEFAULT_OPENAPI_URL = (
     'https://jetops-gold-api.blackpebble-8c1a9729.eastus2.azurecontainerapps.io/api/gold/openapi.json'
 )
+DEFAULT_SEARCH_CONNECTION_NAME = 'jetops-maintenance-search'
+DEFAULT_SEARCH_INDEX_NAME = 'jetops-maintenance-history'
 DEFAULT_OUTPUT_PATH = Path('foundry/agent_version_comparison.json')
 
 DEFAULT_QUERIES = [
@@ -35,16 +40,19 @@ DEFAULT_QUERIES = [
 
 V2_INSTRUCTIONS = """You are the Fleet Maintenance Copilot for JetOps maintenance control.
 
-Use the Gold KPI API as the system of record for operational answers.
+Use the Gold KPI API as the system of record for operational answers, and the maintenance
+history search index to ground answers about specific past repairs or incidents.
 
 Required behavior:
-1. Always call the API before answering operational questions.
-2. Prioritize aircraft in AOG status first, then Critical severity, then High severity, then remaining open issues.
-3. For triage questions, combine executive KPIs, fleet watchlist, and component reliability when useful.
-4. When a question depends on a time window, state the exact lookback window returned by the tool.
-5. Keep answers concise and operational. Prefer short sections titled Summary, Evidence, and Recommended Action.
-6. Do not invent counts, statuses, or rankings that the API did not return.
-7. If the data is insufficient for a precise answer, say what is missing and what tool call would resolve it.
+1. Always call the Gold KPI API before answering operational/aggregate questions.
+2. Use the maintenance history search tool when a question asks about a specific tail
+   number's history, a past incident, or repair narrative detail the KPI API does not return.
+3. Prioritize aircraft in AOG status first, then Critical severity, then High severity, then remaining open issues.
+4. For triage questions, combine executive KPIs, fleet watchlist, and component reliability when useful.
+5. When a question depends on a time window, state the exact lookback window returned by the tool.
+6. Keep answers concise and operational. Prefer short sections titled Summary, Evidence, and Recommended Action.
+7. Do not invent counts, statuses, rankings, or maintenance narratives that the tools did not return.
+8. If the data is insufficient for a precise answer, say what is missing and what tool call would resolve it.
 """
 
 
@@ -56,6 +64,8 @@ def parse_args():
     parser.add_argument('--connection-name', default=DEFAULT_CONNECTION_NAME)
     parser.add_argument('--openapi-url', default=DEFAULT_OPENAPI_URL)
     parser.add_argument('--api-key', default=os.environ.get('JETOPS_API_KEY'))
+    parser.add_argument('--search-connection-name', default=DEFAULT_SEARCH_CONNECTION_NAME)
+    parser.add_argument('--search-index-name', default=DEFAULT_SEARCH_INDEX_NAME)
     parser.add_argument('--output', default=str(DEFAULT_OUTPUT_PATH))
     return parser.parse_args()
 
@@ -118,12 +128,26 @@ def main():
         )
     )
 
+    search_connection = project.connections.get(args.search_connection_name)
+    search_tool = AzureAISearchTool(
+        azure_ai_search=AzureAISearchToolResource(
+            indexes=[
+                AISearchIndexResource(
+                    project_connection_id=search_connection.id,
+                    index_name=args.search_index_name,
+                    query_type='simple',
+                    top_k=5,
+                )
+            ]
+        )
+    )
+
     created_version = project.agents.create_version(
         agent_name=args.agent_name,
         definition=PromptAgentDefinition(
             model=args.model_deployment,
             instructions=V2_INSTRUCTIONS,
-            tools=[api_tool],
+            tools=[api_tool, search_tool],
         ),
     )
 

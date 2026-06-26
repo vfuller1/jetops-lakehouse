@@ -2,46 +2,46 @@
   "agent_name": "fleet-maintenance-copilot-agent",
   "connection_name": "jetops-gold-api-key",
   "model_deployment": "gpt-4-1-mini",
-  "baseline_version": "1",
-  "comparison_version": "2",
+  "baseline_version": "3",
+  "comparison_version": "4",
   "queries": [
     {
       "query": "How many aircraft currently have critical issues? Use the maintenance KPI API.",
       "version_1": {
-        "version": "1",
-        "status": "error",
-        "answer": "Error code: 400 - {'error': {'message': '{\\n  \"error\": \"Validation Error\",\\n  \"message\": \"(\\'HTTP error 401: Unauthorized\\', \\'http_client_error\\', {\\'curl\\': \\\\\"curl -X GET \\'https://jetops-gold-api.blackpebble-8c1a9729.eastus2.azurecontainerapps.io/api/gold/kpis/executive?REDACTED\\' -H \\'Content-Type: REDACTED\\' -H \\'Accept: REDACTED\\'\\\\\"})\",\\n  \"func_call_name\": \"getExecutiveKpis\",\\n  \"spec_id\": \"jetops_gold_kpis\",\\n  \"type\": \"ValidationError\",\\n  \"debug_info\": {\\n    \"error_type\": \"validation_error\",\\n    \"tool_name\": \"python_openapi_tool_jetops_gold_kpis\",\\n    \"curl_command\": \"curl -X GET \\'https://jetops-gold-api.blackpebble-8c1a9729.eastus2.azurecontainerapps.io/api/gold/kpis/executive?REDACTED\\' -H \\'Content-Type: REDACTED\\' -H \\'Accept: REDACTED\\'\"\\n  }\\n}', 'type': 'invalid_request_error', 'param': None, 'code': 'tool_user_error'}}"
+        "version": "3",
+        "status": "ok",
+        "answer": "Summary: Currently, there is 1 aircraft with critical issues in the fleet.\n\nIf you need details about that specific aircraft or its issues, I can provide further information."
       },
       "version_2": {
-        "version": "2",
+        "version": "4",
         "status": "ok",
-        "answer": "Summary:\nThere is currently 1 aircraft with critical issues.\n\nEvidence:\nThe maintenance KPI executive data shows 1 aircraft with critical issues out of a fleet of 5.\n\nRecommended Action:\nPrioritize review and resolution of the critical issue to minimize downtime and operational impact."
+        "answer": "Summary: Currently, there is 1 aircraft with critical issues in the fleet.\n\nIf you need details about this aircraft or its critical issue, I can provide further information."
       }
     },
     {
       "query": "Which aircraft should maintenance control review first this morning? Use the maintenance KPI API and explain the triage order.",
       "version_1": {
-        "version": "1",
-        "status": "error",
-        "answer": "Error code: 400 - {'error': {'message': '{\\n  \"error\": \"Validation Error\",\\n  \"message\": \"(\\'HTTP error 401: Unauthorized\\', \\'http_client_error\\', {\\'curl\\': \\\\\"curl -X GET \\'https://jetops-gold-api.blackpebble-8c1a9729.eastus2.azurecontainerapps.io/api/gold/kpis/fleet-watchlist?REDACTED\\' -H \\'Content-Type: REDACTED\\' -H \\'Accept: REDACTED\\'\\\\\"})\",\\n  \"func_call_name\": \"getFleetWatchlist\",\\n  \"spec_id\": \"jetops_gold_kpis\",\\n  \"type\": \"ValidationError\",\\n  \"debug_info\": {\\n    \"error_type\": \"validation_error\",\\n    \"tool_name\": \"python_openapi_tool_jetops_gold_kpis\",\\n    \"curl_command\": \"curl -X GET \\'https://jetops-gold-api.blackpebble-8c1a9729.eastus2.azurecontainerapps.io/api/gold/kpis/fleet-watchlist?REDACTED\\' -H \\'Content-Type: REDACTED\\' -H \\'Accept: REDACTED\\'\"\\n  }\\n}', 'type': 'invalid_request_error', 'param': None, 'code': 'tool_user_error'}}"
+        "version": "3",
+        "status": "ok",
+        "answer": "Summary:\nThe highest priority aircraft for maintenance control to review first this morning is the Cessna Citation Latitude, tail number N602MX. It is currently in AOG status with a critical severity issue involving the cabin pressurization system at the VNY airport. This is the top priority because AOG status takes precedence followed by severity level.\n\nNext in priority is the Embraer Praetor 600 (N455QX), which has a high-severity landing gear issue causing minor delay and requires part ordering. It is open and needs attention.\n\nThen comes the Dassault Falcon 2000LXS (N901AV) with a high severity engine issue noted as \"swap required,\" currently in-work.\n\nThe Gulfstream G550 (N817JP) has a low severity avionics issue awaiting parts and has the lowest priority.\n\nTriage Order:\n1. N602MX (Cessna Citation Latitude) \u2013 AOG and Critical severity\n2. N455QX (Embraer Praetor 600) \u2013 High severity and open issue with parts required\n3. N901AV (Dassault Falcon 2000LXS) \u2013 High severity, in-work status\n4. N817JP (Gulfstream G550) \u2013 Low severity, awaiting parts\n\nRecommended Action:\nStart with the AOG critical Cessna Citation Latitude (N602MX). Then address the landing gear high severity issue on the Embraer Praetor 600 (N455QX). After that, proceed to the Falcon 2000LXS engine issue (N901AV). Lastly, monitor the Gulfstream G550 avionics case (N817JP) as it is lower urgency.\n\nThis triage respects the operational impact hierarchy: AOG first, then severity level, then open or in-work status, then part availability. The data is current as of June 26, 2026."
       },
       "version_2": {
-        "version": "2",
+        "version": "4",
         "status": "ok",
-        "answer": "Summary:\nThe first aircraft maintenance control should review is the Cessna Citation Latitude (tail N602MX) at VNY. It is currently in AOG status with Critical severity.\n\nTriage Order Explanation:\n1. Aircraft in AOG status have the highest priority. The Cessna Citation Latitude is marked \"Aog\" and has Critical severity.\n2. Next are Critical severity issues without AOG status.\n3. Then High severity issues without AOG status.\n4. Finally, remaining open issues by priority.\n\nEvidence:\n- Cessna Citation Latitude, tail N602MX, is AOG with Critical severity (requires immediate attention).\n- Next in priority are Dassault Falcon 2000LXS and Embraer Praetor 600 with High severity but no AOG.\n- The Gulfstream G550 has Low severity and no AOG.\n\nRecommended Action:\nMaintenance control should immediately assign resources to the Cessna Citation Latitude (N602MX) for unscheduled repair to minimize downtime and operational impact. Other aircraft can be sequenced afterward based on severity and priority."
+        "answer": "Summary:\nMaintenance control should prioritize the following aircraft for review in this order:\n\n1. Tail N602MX (Cessna Citation Latitude) at VNY: This aircraft is currently AOG with a critical severity issue on cabin pressurization, requiring parts and with an estimated downtime of 43.2 hours. AOG status is the highest priority.\n\n2. Tail N455QX (Embraer Praetor 600) at OPF: This aircraft has a high severity landing gear issue, is open and awaiting parts, with an estimated downtime of 24.2 hours.\n\n3. Tail N901AV (Dassault Falcon 2000LXS) at HPN: This aircraft has a high severity engine issue with swap required and is currently in work with 3.1 hours estimated downtime.\n\n4. Tail N817JP (Gulfstream G550) at TEB: This aircraft has a low severity avionics issue awaiting parts but is still open and a repeat issue.\n\nTriage order explanation:\n- Aircraft with AOG (Aircraft on Ground) status take top priority.\n- Next priority is given to aircraft with critical severity, then high severity.\n- Considerations include current status, part availability, estimated downtime, and if it is a repeat issue.\n\nRecommended Action:\nFocus immediate maintenance resources on tail N602MX due to its AOG and critical severity status. Then proceed to the high severity open issues (N455QX and N901AV). Monitor and plan for the lower severity repeat issue on N817JP.\n\nThis triage is based on the latest fleet watchlist data as of 2026-06-26."
       }
     },
     {
       "query": "Which components had the highest unscheduled maintenance pressure over the last 7 days? Use the maintenance KPI API and cite the lookback window.",
       "version_1": {
-        "version": "1",
-        "status": "error",
-        "answer": "Error code: 400 - {'error': {'message': '{\\n  \"error\": \"Validation Error\",\\n  \"message\": \"(\\'HTTP error 401: Unauthorized\\', \\'http_client_error\\', {\\'curl\\': \\\\\"curl -X GET \\'https://jetops-gold-api.blackpebble-8c1a9729.eastus2.azurecontainerapps.io/api/gold/kpis/component-reliability?REDACTED\\' -H \\'Content-Type: REDACTED\\' -H \\'Accept: REDACTED\\'\\\\\"})\",\\n  \"func_call_name\": \"getComponentReliabilityKpis\",\\n  \"spec_id\": \"jetops_gold_kpis\",\\n  \"type\": \"ValidationError\",\\n  \"debug_info\": {\\n    \"error_type\": \"validation_error\",\\n    \"tool_name\": \"python_openapi_tool_jetops_gold_kpis\",\\n    \"curl_command\": \"curl -X GET \\'https://jetops-gold-api.blackpebble-8c1a9729.eastus2.azurecontainerapps.io/api/gold/kpis/component-reliability?REDACTED\\' -H \\'Content-Type: REDACTED\\' -H \\'Accept: REDACTED\\'\"\\n  }\\n}', 'type': 'invalid_request_error', 'param': None, 'code': 'tool_user_error'}}"
+        "version": "3",
+        "status": "ok",
+        "answer": "Summary: There are no components reported with unscheduled maintenance pressure over the last 7 days according to the maintenance KPI API data.\n\nEvidence: The component reliability data for the past 7 days shows no entries indicating unscheduled maintenance pressure.\n\nRecommended Action: No action needed at this time for component unscheduled maintenance pressure. Continue to monitor trends regularly."
       },
       "version_2": {
-        "version": "2",
+        "version": "4",
         "status": "ok",
-        "answer": "Summary:\nOver the last 7 days, the components with the highest unscheduled maintenance pressure (unscheduled event counts) in descending order are:\n1. Cabin Pressurization: 638 unscheduled events\n2. Hydraulics: 318 unscheduled events\n3. Engine: 317 unscheduled events\n4. Avionics: 300 unscheduled events\n5. Landing Gear: 0 unscheduled events reported\n\nEvidence:\nThis is based on maintenance KPI data for a 7-day lookback period for unscheduled maintenance events by component.\n\nRecommended Action:\nPrioritize detailed review and root cause analysis of Cabin Pressurization, Hydraulics, Engine, and Avionics components to address these high unscheduled maintenance pressures and reduce operational disruptions."
+        "answer": "Summary: There are no components reported with unscheduled maintenance pressure over the last 7 days according to the maintenance KPI API.\n\nEvidence: The API returned no component reliability pressure signals in the 7-day lookback window.\n\nRecommended Action: Continue monitoring, as no components currently show elevated unscheduled maintenance pressure. Let me know if you want to expand the query or focus on a specific component or aircraft."
       }
     }
   ]
