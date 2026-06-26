@@ -126,6 +126,8 @@ py scripts/build_maintenance_search_index.py
 
 If neither applies, the model answers directly from its own knowledge with no external call.
 
+![Agent decision process: user question -> reasoning -> tool choice -> synthesized answer](picture/Agent%20Decision%20Process.jpg)
+
 **Why the Gold KPI API needs a Container App at all:** Azure AI Search and Azure OpenAI are first-party managed services — Microsoft already runs them, so Foundry just calls them over the network. The Gold KPI API is different: it's custom code ([app/app.py](app/app.py) + [app/gold_kpi_service.py](app/gold_kpi_service.py)) that reads ADLS Gen2 snapshots, applies query params, and validates `x-api-key`. Nothing in Azure runs that code for you — it has to be hosted somewhere with a real HTTPS endpoint, which is what the `jetops-gold-api` Container App provides. Container Apps was chosen over AKS (too much operational overhead for one small API) and over Azure Functions (wrong execution model for a persistent REST contract; Functions is used instead for the event generator, which fits its trigger-driven model).
 
 #### Foundry Playground Example
