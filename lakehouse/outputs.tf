@@ -47,3 +47,13 @@ output "herbalife_databricks_workspace_id" {
   description = "ID of the Herbalife Databricks workspace"
   value       = azurerm_databricks_workspace.HL_herbalife_dev.id
 }
+
+output "herbalife_search_service_name" {
+  description = "Name of the Azure AI Search service used for maintenance-history RAG"
+  value       = azurerm_search_service.HL_herbalife_dev.name
+}
+
+output "herbalife_search_service_endpoint" {
+  description = "Query endpoint for the Azure AI Search service"
+  value       = "https://${azurerm_search_service.HL_herbalife_dev.name}.search.windows.net"
+}

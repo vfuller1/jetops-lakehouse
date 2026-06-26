@@ -38,6 +38,16 @@ variable "herbalife_eventhub_name" {
   default     = "jetops-maintenance-events-dev"
 }
 
+variable "herbalife_search_service_name" {
+  description = "Azure AI Search service name for maintenance-history RAG."
+  default     = "srch-herbalife-dev"
+}
+
+variable "herbalife_search_region" {
+  description = "Azure region for the AI Search service. Kept separate from herbalife_region since Search capacity availability varies by region independently of the rest of the lakehouse."
+  default     = "eastus"
+}
+
 variable "enable_herbalife_storage_role_assignment" {
   description = "Whether Terraform should create the optional Storage Blob Data Contributor assignment for the fixed principal."
   type        = bool
