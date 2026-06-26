@@ -113,6 +113,21 @@ $env:AZURE_SEARCH_KEY = (az search admin-key show --service-name srch-herbalife-
 py scripts/build_maintenance_search_index.py
 ```
 
+#### Agent Tools: OpenAPI Tool vs. AzureAISearchTool
+
+`fleet-maintenance-copilot-agent` can call two structurally different tools, plus a no-tool fallback:
+
+| | OpenAPI tool (`jetops_gold_kpi_api`) | `AzureAISearchTool` (`jetops-maintenance-history`) |
+|---|---|---|
+| Backed by | Your own Flask API (`app/app.py`) | A managed Azure AI Search index |
+| Execution | Real HTTP request to the Container App, authenticated via the `jetops-gold-api-key` connection | Direct query to the Search service via the `jetops-maintenance-search` connection |
+| Returns | Structured JSON — pre-aggregated KPI numbers | Unstructured narrative text — matching log records |
+| Best for | "How many," "which is worst," current-state/aggregate questions | "What happened," "has this aircraft had this issue before" |
+
+If neither applies, the model answers directly from its own knowledge with no external call.
+
+**Why the Gold KPI API needs a Container App at all:** Azure AI Search and Azure OpenAI are first-party managed services — Microsoft already runs them, so Foundry just calls them over the network. The Gold KPI API is different: it's custom code ([app/app.py](app/app.py) + [app/gold_kpi_service.py](app/gold_kpi_service.py)) that reads ADLS Gen2 snapshots, applies query params, and validates `x-api-key`. Nothing in Azure runs that code for you — it has to be hosted somewhere with a real HTTPS endpoint, which is what the `jetops-gold-api` Container App provides. Container Apps was chosen over AKS (too much operational overhead for one small API) and over Azure Functions (wrong execution model for a persistent REST contract; Functions is used instead for the event generator, which fits its trigger-driven model).
+
 #### Foundry Playground Example
 
 The screenshot below is an example Azure AI Foundry playground view inside the `fleet-maintenance-copilot` project.
