@@ -22,7 +22,13 @@ spec:
         image: aviatoracrjetops01.azurecr.io/aviatorcoreapp:latest # Use the latest pushed image
         imagePullPolicy: Always
         ports:
-        - containerPort: 5000
+        - containerPort: 8000
+        env:
+        - name: JETOPS_SQL_CONNECTION_STRING
+          valueFrom:
+            secretKeyRef:
+              name: aviator-sql-connection
+              key: JETOPS_SQL_CONNECTION_STRING
 ---
 apiVersion: v1
 kind: Service
@@ -36,7 +42,7 @@ spec:
   ports:
     - protocol: TCP
       port: 80
-      targetPort: 5000
+      targetPort: 8000
 
 ---
 apiVersion: v1
