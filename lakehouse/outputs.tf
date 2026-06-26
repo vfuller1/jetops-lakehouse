@@ -57,3 +57,13 @@ output "herbalife_search_service_endpoint" {
   description = "Query endpoint for the Azure AI Search service"
   value       = "https://${azurerm_search_service.HL_herbalife_dev.name}.search.windows.net"
 }
+
+output "herbalife_application_insights_name" {
+  description = "Name of the Application Insights resource used for Foundry agent tracing"
+  value       = azurerm_application_insights.HL_herbalife_dev.name
+}
+
+output "herbalife_application_insights_id" {
+  description = "ID of the Application Insights resource used for Foundry agent tracing"
+  value       = azurerm_application_insights.HL_herbalife_dev.id
+}
