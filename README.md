@@ -1,6 +1,6 @@
 # JetOps Lakehouse
 
-JetOps Lakehouse is an Azure-first maintenance operations reference project. It combines Terraform-managed infrastructure, a Databricks medallion pipeline, a synthetic Event Hubs producer, a Gold KPI API, and Azure AI Foundry integration notes for a fleet-maintenance copilot.
+JetOps Lakehouse is an Azure-first maintenance operations reference project. It combines Terraform-managed infrastructure, a Databricks medallion pipeline, a synthetic Event Hubs producer, a Gold KPI API, and an Azure AI Foundry fleet-maintenance copilot grounded by both a structured KPI API tool and an Azure AI Search RAG tool over maintenance history.
 
 This repo is centered on JetOps maintenance events and the path from event generation to Gold KPI serving.
 
@@ -11,6 +11,7 @@ This repo is centered on JetOps maintenance events and the path from event gener
 - Databricks notebooks for Bronze, Silver, and Gold maintenance processing.
 - A Flask API that serves Gold KPI snapshots from ADLS Gen2.
 - Azure AI Foundry setup notes and version-management scripts for a maintenance copilot.
+- An Azure AI Search RAG index over maintenance history, wired into the Foundry agent alongside the Gold KPI API tool.
 
 ## Architecture
 
@@ -90,6 +91,28 @@ The stored comparison artifact is [foundry/agent_version_comparison.json](foundr
 
 For ad hoc or scripted Q&A against the deployed agent, use [scripts/ask_copilot.py](scripts/ask_copilot.py) (interactive console) or [scripts/demo_questions.py](scripts/demo_questions.py) (runs a fixed set of demo questions). Both require `az login` against the target tenant/subscription and the `azure-ai-projects` / `azure-ai-agents` / `azure-identity` packages.
 
+#### Maintenance History RAG (Azure AI Search)
+
+`fleet-maintenance-copilot-agent` has a second tool alongside the Gold KPI API: an **Azure AI Search** tool grounded against the `jetops-maintenance-history` index. This lets the agent answer narrative questions (e.g. "what past hydraulic leak incidents have there been?") that the KPI API cannot, since the KPI API only returns aggregated numbers, not repair narratives.
+
+Pieces involved:
+
+- [lakehouse/herbalife_search.tf](lakehouse/herbalife_search.tf) provisions the `srch-herbalife-dev` Azure AI Search service (Basic tier).
+- [scripts/build_maintenance_search_index.py](scripts/build_maintenance_search_index.py) reads [app/maintenance_logs_sample_data.sql](app/maintenance_logs_sample_data.sql), embeds each record with `text-embedding-3-small` via the Foundry project's Azure OpenAI connection, and upserts both keyword and vector fields into the `jetops-maintenance-history` index.
+- The Foundry project connection `jetops-maintenance-search` (category `CognitiveSearch`) points the agent at that Search service.
+- `scripts/manage_foundry_agent_versions.py` attaches the `AzureAISearchTool` to new agent versions using that connection, with `query_type='simple'`.
+
+Note: the tool currently runs keyword (`simple`) search, not vector search. Embeddings are stored in the index, but Foundry's `AzureAISearchTool` needs an **integrated vectorizer** on the index's vector field to do vector search itself (it sends raw query text, not pre-computed vectors). Adding that vectorizer is the natural next step for true semantic retrieval.
+
+To rebuild the index after data changes:
+
+```powershell
+az login
+$env:AZURE_SEARCH_ENDPOINT = "https://srch-herbalife-dev.search.windows.net"
+$env:AZURE_SEARCH_KEY = (az search admin-key show --service-name srch-herbalife-dev --resource-group rg-herbalife-dev-core --query primaryKey -o tsv)
+py scripts/build_maintenance_search_index.py
+```
+
 #### Foundry Playground Example
 
 The screenshot below is an example Azure AI Foundry playground view inside the `fleet-maintenance-copilot` project.
@@ -132,6 +155,7 @@ For live KPI validation, use the repo-managed agent `fleet-maintenance-copilot-a
 |   |-- demo_questions.py
 |   |-- demo_start.ps1
 |   |-- bulk_trigger_load.py
+|   |-- build_maintenance_search_index.py
 |   |-- manage_foundry_agent_versions.py
 |   |-- smoke_test_adls_foundry.py
 |   `-- stop_bulk_trigger_load.py
@@ -140,6 +164,7 @@ For live KPI validation, use the repo-managed agent `fleet-maintenance-copilot-a
 |   |-- herbalife_eventhub.tf
 |   |-- herbalife_monitor.tf
 |   |-- herbalife_network.tf
+|   |-- herbalife_search.tf
 |   |-- herbalife_storage.tf
 |   |-- herbalife_stream_analytics.tf
 |   |-- providers.tf
@@ -273,12 +298,12 @@ Common variables used by [app/app.py](app/app.py) and [app/gold_kpi_service.py](
 - Databricks Bronze, Silver, and Gold transformations
 - Gold KPI serving through a protected Flask API
 - OpenAPI-based tool wiring for Azure AI Foundry
+- Azure AI Search RAG over maintenance history, wired as a second Foundry agent tool
 - A practical maintenance-copilot test path in Foundry
 
 ## Current Gaps
 
 - The README does not attempt to document every Terraform resource in detail.
 - Ad hoc playground agents (e.g. `Agent400`) can drift from the repo-managed `fleet-maintenance-copilot-agent`. If the named agent is missing, recreate it by running the inline creation block documented in [foundry/fleet_maintenance_copilot_setup.md](foundry/fleet_maintenance_copilot_setup.md). The `manage_foundry_agent_versions.py` script targets the `azure-ai-projects` 2.x SDK API and will not run against the 1.x SDK installed by `azure-cli`.
-- No embedding or vector search layer is wired in. The Foundry agent is tool-grounded against the Gold KPI API only. RAG over maintenance history (Azure AI Search + `text-embedding-3-small`) is a planned next phase.
-- `scripts/demo_start.ps1` is untracked but currently hardcodes a live `JETOPS_API_KEY` value; rotate that key and have the script read it from the environment or a local secrets file before it is ever committed.
+- The Azure AI Search tool runs keyword (`simple`) search rather than vector search. The index has precomputed embeddings, but Foundry's `AzureAISearchTool` needs an integrated vectorizer on the index to vectorize queries itself; that vectorizer isn't configured yet.
 
