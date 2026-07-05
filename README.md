@@ -171,6 +171,8 @@ For live KPI validation, use the repo-managed agent `fleet-maintenance-copilot-a
 |   |-- ask_copilot.py
 |   |-- demo_questions.py
 |   |-- demo_start.ps1
+|   |-- demo_down.ps1
+|   |-- demo_up.ps1
 |   |-- bulk_trigger_load.py
 |   |-- build_maintenance_search_index.py
 |   |-- manage_foundry_agent_versions.py
@@ -282,6 +284,47 @@ az acr build --resource-group rg-aviator-core-prod --registry aviatoracrjetops01
 ```
 
 The container definition is in [app/Dockerfile](app/Dockerfile).
+
+## Cost Management: Pausing Infra Between Demos
+
+This is a demo project, not a 24/7 service, but several resources bill by the hour whether or not they're actually in use: AKS, the VM, the SQL server's private-endpoint networking, Event Hubs Standard, and the Stream Analytics job. [scripts/demo_down.ps1](scripts/demo_down.ps1) and [scripts/demo_up.ps1](scripts/demo_up.ps1) cycle just those resources via `terraform destroy -target=...` / `terraform apply`, so you can tear the billed pieces down between demos and rebuild before the next one without losing any data.
+
+**Destroyed by `demo_down.ps1`, recreated by `demo_up.ps1`:**
+
+- Root: AKS, the VM, Container Registry, VNets/subnets/NSGs, private endpoints/DNS, identities, role assignments
+- Lakehouse: the Event Hubs namespace, the Stream Analytics job, and the Function App (pulled in automatically because its `app_settings` reference the Event Hub connection string directly)
+
+**Kept persistent, never destroyed:**
+
+- Both resource groups
+- The SQL server and `db-airplane-maintenance` database
+- Both storage accounts (`stherbalifedev001` and the Function App's storage) and their containers
+- The Databricks workspace and Azure AI Search — cycling the workspace saves nothing (no direct hourly charge), and destroying Search would wipe the RAG index
+
+**Not covered by either script:**
+
+- [databricks_cluster/](databricks_cluster/) — a separate Terraform state that needs its own `DATABRICKS_HOST`/`DATABRICKS_TOKEN`; the cluster already has `autotermination_minutes = 30`, so it isn't a flat 24/7 charge worth cycling
+- The Gold API Container App (`jetops-gold-api` / `jetops-gold-api-env`) and the AI Foundry account/project — these were created outside this repo's Terraform (not in either state) and keep running regardless of `demo_down.ps1`
+
+Usage:
+
+```powershell
+# Tearing down — any value works, Terraform never reads these back on a destroy
+$env:TF_VAR_sql_admin_password = "placeholder"
+$env:TF_VAR_rycrawl_admin_password = "placeholder"
+.\scripts\demo_down.ps1
+```
+
+```powershell
+# Rebuilding — sql_admin_password MUST be the real current password, since the
+# SQL server was never destroyed; a mismatch silently resets its credential.
+# rycrawl_admin_password can be anything, since the VM is created fresh.
+$env:TF_VAR_sql_admin_password = "<the real, current SQL admin password>"
+$env:TF_VAR_rycrawl_admin_password = "<any password for the new VM>"
+.\scripts\demo_up.ps1
+```
+
+The `-target` lists inside `demo_down.ps1` are hand-maintained against the current `.tf` files. If resources are added or renamed in root or `lakehouse/`, update those lists too, or the surgical destroy will drift out of sync with what's actually deployed.
 
 ## Key Configuration
 
