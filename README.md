@@ -326,6 +326,8 @@ $env:TF_VAR_rycrawl_admin_password = "<any password for the new VM>"
 
 The `-target` lists inside `demo_down.ps1` are hand-maintained against the current `.tf` files. If resources are added or renamed in root or `lakehouse/`, update those lists too, or the surgical destroy will drift out of sync with what's actually deployed.
 
+**Watch out for CI undoing the teardown.** [.github/workflows/deploy.yml](.github/workflows/deploy.yml) runs `terraform apply` in root on every push to `main` that touches its trigger paths. It used to be a `paths-ignore` denylist that missed things like `scripts/**` and `README.md` — pushing changes to either would retrigger the workflow and silently recreate everything `demo_down.ps1` had just torn down. It's now a `paths` allowlist scoped to root's actual `.tf` files, so unrelated pushes (docs, scripts, lakehouse changes) no longer touch it. Still, avoid pushing changes to the listed root `.tf` files while intentionally torn down between demos — that will bring root back up via CI regardless of `demo_down.ps1`.
+
 ## Key Configuration
 
 ### Azure Function Local Settings

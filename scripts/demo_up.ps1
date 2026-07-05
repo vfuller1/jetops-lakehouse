@@ -20,6 +20,14 @@
 # Requires: az login (to the sub-jetops-prod subscription), and both
 # env vars above set before running. Expect several minutes for AKS +
 # private endpoints + DNS to come back up.
+#
+# Pass -Force to skip the interactive confirmation below (e.g. when running
+# non-interactively) — only do this once you're already certain
+# TF_VAR_sql_admin_password is the real current password.
+
+param(
+    [switch]$Force
+)
 
 $ErrorActionPreference = "Stop"
 $repoRoot = Split-Path -Parent $PSScriptRoot
@@ -31,12 +39,14 @@ if (-not $env:TF_VAR_sql_admin_password -or -not $env:TF_VAR_rycrawl_admin_passw
     exit 1
 }
 
-Write-Host "Confirm TF_VAR_sql_admin_password is the REAL current SQL admin password, not a placeholder." -ForegroundColor Yellow
-Write-Host "An apply with the wrong value will reset the live SQL server's password." -ForegroundColor Yellow
-$sqlConfirm = Read-Host "Type 'yes' to confirm and continue"
-if ($sqlConfirm -ne "yes") {
-    Write-Host "Aborted." -ForegroundColor Cyan
-    exit 0
+if (-not $Force) {
+    Write-Host "Confirm TF_VAR_sql_admin_password is the REAL current SQL admin password, not a placeholder." -ForegroundColor Yellow
+    Write-Host "An apply with the wrong value will reset the live SQL server's password." -ForegroundColor Yellow
+    $sqlConfirm = Read-Host "Type 'yes' to confirm and continue"
+    if ($sqlConfirm -ne "yes") {
+        Write-Host "Aborted." -ForegroundColor Cyan
+        exit 0
+    }
 }
 
 Write-Host "--- Applying root (AKS, VM, SQL, ACR, networking) ---" -ForegroundColor Cyan

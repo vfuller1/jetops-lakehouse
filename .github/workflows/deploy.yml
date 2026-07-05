@@ -3,11 +3,27 @@ name: 'Aviator Core Deploy'
 on:
   push:
     branches: [ "main" ]
-    paths-ignore:
-      - "lakehouse/**"
-      - "databricks_cluster/**"
-      - ".github/workflows/herbalife-lakehouse.yml"
-      - ".github/workflows/databricks-cluster.yml"
+    # Allowlist, not a denylist: only these root Terraform files (and this
+    # workflow itself) trigger an apply. A denylist here previously missed
+    # scripts/**, README.md, etc. — any push touching those re-triggered a
+    # full `terraform apply` and silently recreated AKS/VM/ACR/networking
+    # even when they'd been intentionally torn down via scripts/demo_down.ps1.
+    paths:
+      - "aks.tf"
+      - "aviator_app_identity.tf"
+      - "database_SQL.tf"
+      - "federation.tf"
+      - "networking.tf"
+      - "nsg_sql_endpoint.tf"
+      - "outputs.tf"
+      - "providers.tf"
+      - "registry-ACR.tf"
+      - "rycrawl_test_server.tf"
+      - "sql_private_endpoint.tf"
+      - "variable.tf"
+      - ".terraform.lock.hcl"
+      - ".github/workflows/deploy.yml"
+  workflow_dispatch:
 
 jobs:
   terraform:
