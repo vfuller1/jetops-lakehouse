@@ -17,16 +17,20 @@ resource "azurerm_kubernetes_cluster" "aviator_core" {
   workload_identity_enabled = true
 
   default_node_pool {
-    name         = "default"
-    node_count   = 1
-    vm_size      = "Standard_D2as_v6" 
-    os_disk_type = "Managed"
+    name                        = "default"
+    node_count                  = 1
+    vm_size                     = "Standard_D2as_v6"
+    os_disk_type                = "Managed"
+    vnet_subnet_id              = azurerm_subnet.aks_subnet.id
+    temporary_name_for_rotation = "temppool"
   }
 
   identity {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.aviator_identity.id]
   }
+
+  depends_on = [azurerm_role_assignment.aks_network_contributor]
 
   tags = {
     Environment = "Production"

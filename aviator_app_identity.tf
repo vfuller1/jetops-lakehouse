@@ -19,6 +19,15 @@ resource "azurerm_role_assignment" "sql_reader" {
   principal_id         = azurerm_user_assigned_identity.aviator_app_identity.principal_id
 }
 
+# AKS's cluster identity (aviator_identity, not this one) needs Network
+# Contributor on the subnet it joins, to manage NICs/routes there. Without
+# this, AKS creation would fail once vnet_subnet_id is set on the node pool.
+resource "azurerm_role_assignment" "aks_network_contributor" {
+  scope                = azurerm_subnet.aks_subnet.id
+  role_definition_name = "Network Contributor"
+  principal_id         = azurerm_user_assigned_identity.aviator_identity.principal_id
+}
+
 # Output identity details for use in Kubernetes YAML
 output "aviator_app_identity_client_id" {
   value = azurerm_user_assigned_identity.aviator_app_identity.client_id

@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: aviator-core
+---
+# The aviator-sql-connection secret is NOT defined here — create it out of
+# band (kubectl create secret ...) so the connection string never lands in
+# git. See README's MCP SQL Explorer section for the exact command.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jetops-sql-explorer
+  namespace: aviator-core
+  labels:
+    app: jetops-sql-explorer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jetops-sql-explorer
+  template:
+    metadata:
+      labels:
+        app: jetops-sql-explorer
+    spec:
+      containers:
+      - name: jetops-sql-explorer
+        image: aviatoracrjetops01.azurecr.io/mcp-sql-server:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        env:
+        - name: JETOPS_SQL_CONNECTION_STRING
+          valueFrom:
+            secretKeyRef:
+              name: aviator-sql-connection
+              key: JETOPS_SQL_CONNECTION_STRING
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jetops-sql-explorer
+  namespace: aviator-core
+spec:
+  type: ClusterIP
+  selector:
+    app: jetops-sql-explorer
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080

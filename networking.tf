@@ -84,6 +84,18 @@ resource "azurerm_subnet" "rycrawl_test_subnet" {
   address_prefixes     = ["10.1.4.0/24"]
 }
 
+# Dedicated Subnet for AKS nodes. AKS previously had no vnet_subnet_id set,
+# so it silently created its own separate, unpeered VNet instead of joining
+# this one — meaning nothing running in AKS could ever reach the SQL private
+# endpoint despite the allow-sql-from-aks NSG rule below. This subnet is what
+# aks.tf's default_node_pool.vnet_subnet_id now points at.
+resource "azurerm_subnet" "aks_subnet" {
+  name                 = "snet-aks-aviator"
+  resource_group_name  = azurerm_resource_group.aviator.name
+  virtual_network_name = azurerm_virtual_network.spoke.name
+  address_prefixes     = ["10.1.5.0/24"]
+}
+
 # Private DNS Zone for SQL Name Resolution
 resource "azurerm_private_dns_zone" "sql_dns" {
   name                = "privatelink.database.windows.net"

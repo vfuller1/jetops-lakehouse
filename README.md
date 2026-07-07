@@ -130,6 +130,34 @@ If neither applies, the model answers directly from its own knowledge with no ex
 
 **Why the Gold KPI API needs a Container App at all:** Azure AI Search and Azure OpenAI are first-party managed services — Microsoft already runs them, so Foundry just calls them over the network. The Gold KPI API is different: it's custom code ([app/app.py](app/app.py) + [app/gold_kpi_service.py](app/gold_kpi_service.py)) that reads ADLS Gen2 snapshots, applies query params, and validates `x-api-key`. Nothing in Azure runs that code for you — it has to be hosted somewhere with a real HTTPS endpoint, which is what the `jetops-gold-api` Container App provides. Container Apps was chosen over AKS (too much operational overhead for one small API) and over Azure Functions (wrong execution model for a persistent REST contract; Functions is used instead for the event generator, which fits its trigger-driven model).
 
+### MCP SQL Explorer
+
+[mcp_sql_server/server.py](mcp_sql_server/server.py) is an MCP server for ad hoc, read-only SQL exploration against the same Aviator Core maintenance database the legacy dashboard route in [app/app.py](app/app.py) uses. It exposes three tools over the streamable-http MCP transport:
+
+- `list_tables()` — enumerate tables in the database
+- `describe_table(table_name, schema)` — list a table's columns, types, and nullability
+- `run_query(sql, max_rows)` — run a single `SELECT` (optionally `WITH ... SELECT`) statement and return up to 200 rows; `INSERT`/`UPDATE`/`DELETE`/`DROP`/`ALTER`/etc. and multi-statement batches are rejected
+
+It connects via `JETOPS_SQL_CONNECTION_STRING`, the same env var used by the Gold API's legacy dashboard route.
+
+**Networking:** the server runs as `jetops-sql-explorer` in AKS, in the `aviator-core` namespace. AKS nodes now join the dedicated `snet-aks-aviator` subnet (`azurerm_subnet.aks_subnet` in [networking.tf](networking.tf)) so they land inside the `vnet-spoke-aviator` VNet and can reach the SQL private endpoint — previously AKS had no `vnet_subnet_id` set, so it silently created its own unpeered VNet and nothing running in it could ever reach SQL. Reaching AKS's own subnet requires the cluster identity to hold Network Contributor on it, added as `azurerm_role_assignment.aks_network_contributor` in [aviator_app_identity.tf](aviator_app_identity.tf).
+
+**Deploying:**
+
+```powershell
+az acr build --resource-group rg-aviator-core-prod --registry aviatoracrjetops01 --image mcp-sql-server:latest --file mcp_sql_server/Dockerfile mcp_sql_server
+```
+
+The `aviator-sql-connection` Kubernetes secret is deliberately **not** defined in [mcp_sql_server/deployment.yaml](mcp_sql_server/deployment.yaml), so the connection string never lands in git. Create it out of band before applying the deployment:
+
+```powershell
+kubectl create namespace aviator-core --dry-run=client -o yaml | kubectl apply -f -
+kubectl create secret generic aviator-sql-connection `
+  --namespace aviator-core `
+  --from-literal=JETOPS_SQL_CONNECTION_STRING="<same value as JETOPS_SQL_CONNECTION_STRING>"
+kubectl apply -f mcp_sql_server/deployment.yaml
+```
+
 #### Foundry Playground Example
 
 The screenshot below is an example Azure AI Foundry playground view inside the `fleet-maintenance-copilot` project.
@@ -178,6 +206,11 @@ For live KPI validation, use the repo-managed agent `fleet-maintenance-copilot-a
 |   |-- manage_foundry_agent_versions.py
 |   |-- smoke_test_adls_foundry.py
 |   `-- stop_bulk_trigger_load.py
+|-- mcp_sql_server/
+|   |-- server.py
+|   |-- Dockerfile
+|   |-- deployment.yaml
+|   `-- requirements.txt
 |-- lakehouse/
 |   |-- herbalife_databricks_workspace.tf
 |   |-- herbalife_eventhub.tf
@@ -352,7 +385,7 @@ Common variables used by [app/app.py](app/app.py) and [app/gold_kpi_service.py](
 - `JETOPS_GOLD_CONTAINER`
 - `JETOPS_GOLD_API_SNAPSHOT_ROOT`
 - `PUBLIC_BASE_URL`
-- `JETOPS_SQL_CONNECTION_STRING` for the optional legacy dashboard route
+- `JETOPS_SQL_CONNECTION_STRING` for the optional legacy dashboard route, and for the `jetops-sql-explorer` MCP server via the out-of-band `aviator-sql-connection` secret (see [MCP SQL Explorer](#mcp-sql-explorer) above)
 
 ## What The Project Currently Demonstrates
 
